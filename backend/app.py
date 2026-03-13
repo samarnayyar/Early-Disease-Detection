@@ -5,16 +5,13 @@ import pandas as pd
 import os
 
 app = Flask(__name__)
-# Enable CORS for the frontend Vite server
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Directory where models are stored
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 MODELS_DIR = os.path.join(BASE_DIR, 'models')
 
-# --- Background Model Configurations (Fixed/Static Parameters) ---
-# These are the parameters that the model requires but are not part of our 
-# simplified UI. We use stable medians to ensure model compatibility.
+# --- Prediction Model Configurations ---
+# Includes necessary parameters not captured by the UI. Median values used for compatibility.
 MODEL_DEFAULTS = {
     'diabetes': {
         'SkinThickness': 23.0,
@@ -42,7 +39,6 @@ MODEL_DEFAULTS = {
     }
 }
 
-# Dictionary to store loaded models
 models = {}
 
 def load_models():
@@ -65,7 +61,7 @@ def load_models():
         except Exception as e:
             print(f"Error loading {key} model: {e}")
 
-# Initial load
+# Load models on server startup
 load_models()
 
 @app.route('/predict', methods=['POST'])
@@ -79,10 +75,10 @@ def predict():
             
         model = models[disease]
         
-        # 1. Start with the hidden defaults for this disease
+        # 1. Initialize with model-specific defaults
         input_dict = MODEL_DEFAULTS.get(disease, {}).copy()
         
-        # 2. Add the User-Provided Important Parameters
+        # 2. Merge user-provided parameters
         if disease == 'diabetes':
             input_dict.update({
                 'Pregnancies': float(data.get('pregnancies', 3)),
@@ -128,22 +124,17 @@ def predict():
         if hasattr(model, 'feature_names_in_'):
             input_df = input_df[list(model.feature_names_in_)]
             
-        # Prediction Logic
-        # For lung (multi-class severity), >0 is High Risk. For others, 1 is High Risk.
+        # Execute prediction and calculate risk probability
         prediction_val = model.predict(input_df)[0]
-        
-        # Risk Score (Confidence) calculation
         try:
             if hasattr(model, 'predict_proba'):
                 probs = model.predict_proba(input_df)[0]
-                # Probability of "Not Healthy" is 1 minus prob of class 0
                 risk_score = int((1.0 - probs[0]) * 100)
             else:
                 risk_score = 90 if prediction_val > 0 else 10
         except:
             risk_score = 90 if prediction_val > 0 else 10
             
-        # Format the human-readable response
         status = 'High Risk' if prediction_val > 0 else 'Low Risk'
         display_disease = disease.replace('_', ' ').capitalize()
         
