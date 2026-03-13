@@ -1,11 +1,46 @@
-import { useState } from 'react';
-import { Activity, Beaker, HeartPulse, Stethoscope, Droplet, ArrowLeft, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Activity, ShieldCheck, Heart, HeartPulse, Wind, Droplets, Droplet, ArrowLeft, Loader2, Gauge, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 const DISEASES = [
-  { id: 'diabetes', name: 'Diabetes', icon: Droplet, color: 'text-blue-500', bg: 'bg-blue-100', border: 'border-blue-200' },
-  { id: 'lung', name: 'Lung Disease', icon: Activity, color: 'text-gray-500', bg: 'bg-gray-100', border: 'border-gray-200' },
-  { id: 'heart', name: 'Heart Disease', icon: HeartPulse, color: 'text-red-500', bg: 'bg-red-100', border: 'border-red-200' },
-  { id: 'kidney', name: 'Kidney Disease', icon: Beaker, color: 'text-purple-500', bg: 'bg-purple-100', border: 'border-purple-200' },
+  { 
+    id: 'diabetes', 
+    name: 'Diabetes', 
+    icon: Droplet, 
+    color: 'text-red-500', 
+    bg: 'bg-red-50',
+    description: 'Glucose & Metabolic Analysis'
+  },
+  { 
+    id: 'heart', 
+    name: 'Heart Disease', 
+    icon: HeartPulse, 
+    color: 'text-rose-500', 
+    bg: 'bg-rose-50',
+    description: 'Cardiovascular Health'
+  },
+  { 
+    id: 'lung', 
+    name: 'Lung Disease', 
+    icon: Wind, 
+    color: 'text-blue-500', 
+    bg: 'bg-blue-50',
+    description: 'Respiratory Function'
+  },
+  { 
+    id: 'kidney', 
+    name: 'Kidney Disease', 
+    icon: Activity, 
+    color: 'text-emerald-500', 
+    bg: 'bg-emerald-50',
+    description: 'Renal & Fluid Balance'
+  }
+];
+
+const LOADING_PHASES = [
+  "Checking your health details...",
+  "Comparing with our medical data...",
+  "Looking for any patterns...",
+  "Finalizing your risk assessment..."
 ];
 
 export default function App() {
@@ -13,6 +48,19 @@ export default function App() {
   const [selectedDisease, setSelectedDisease] = useState(null);
   const [formData, setFormData] = useState({});
   const [result, setResult] = useState(null);
+  const [loadingPhase, setLoadingPhase] = useState(0);
+
+  // Cycle through loading phases when in loading step
+  useEffect(() => {
+    let interval;
+    if (step === 'loading') {
+      setLoadingPhase(0);
+      interval = setInterval(() => {
+        setLoadingPhase(prev => (prev < LOADING_PHASES.length - 1 ? prev + 1 : prev));
+      }, 700);
+    }
+    return () => clearInterval(interval);
+  }, [step]);
 
   const handleSelectDisease = (diseaseId) => {
     setSelectedDisease(diseaseId);
@@ -52,11 +100,11 @@ export default function App() {
 
       const data = await response.json();
 
-      // Add artificial delay just for the UI loading effect
+      // Increased delay to show the nice loading points
       setTimeout(() => {
         setResult(data);
         setStep('result');
-      }, 1500);
+      }, 3000);
 
     } catch (error) {
       console.error("Error fetching prediction:", error);
@@ -78,44 +126,53 @@ export default function App() {
 
   const getDiseaseDeets = () => DISEASES.find(d => d.id === selectedDisease);
 
+  const getRiskSummary = (status, score) => {
+    if (status === 'Low Risk') {
+      return "Everything looks good! Your numbers are well within the healthy range, so there's no immediate cause for concern. Keep up the healthy habits!";
+    } else if (score < 60) {
+      return "We found some borderline results. While you're not in a high-risk zone yet, it might be a good idea to watch your habits and maybe mention these results to a doctor at your next check-up.";
+    } else {
+      return "Our system found some patterns that are often seen in people with this condition. Because some of your numbers are on the higher side, we really recommend talking to a doctor soon just to be safe.";
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-3xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#111827] py-6 px-4 sm:px-6 lg:px-8 font-sans selection:bg-indigo-500/30">
+      <div className="max-w-5xl mx-auto space-y-6">
 
         {/* Header */}
-        <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-4">
-            <Stethoscope className="h-8 w-8" />
-          </div>
-          <h1 className="text-3xl font-extrabold text-gray-900">Health Risk Predictor</h1>
-          <p className="mt-2 text-lg text-gray-600">
-            Powered by Machine Learning Models
+        <div className="text-center space-y-2 animate-in fade-in slide-in-from-top-4 duration-1000">
+          <h1 className="text-4xl md:text-5xl font-bold text-white">
+            AI Health Risk Predictor
+          </h1>
+          <p className="text-lg md:text-xl text-slate-300 font-medium max-w-xl mx-auto leading-relaxed">
+            Early Detection of Major Diseases Using Machine Learning
           </p>
         </div>
 
         {/* Main Content Area */}
-        <div className="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
+        <div className="bg-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-4xl overflow-hidden border border-slate-200/10">
 
           {/* Back Navigation */}
           {step !== 'selection' && step !== 'loading' && (
-            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
+            <div className="px-6 py-3 border-b border-slate-100 bg-slate-50/50">
               <button
                 onClick={handleBack}
-                className="flex items-center text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors"
+                className="flex items-center text-sm font-bold text-slate-500 hover:text-indigo-600 transition-all transform hover:-translate-x-1"
               >
-                <ArrowLeft className="h-4 w-4 mr-1" />
-                Back to {step === 'form' ? 'Selection' : 'Form'}
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Return to {step === 'form' ? 'Type Selection' : 'Assessment'}
               </button>
             </div>
           )}
 
-          <div className="p-8">
+          <div className="p-8 md:p-10">
             {/* Step 1: Selection */}
             {step === 'selection' && (
-              <div className="space-y-6">
-                <div className="text-center mb-8">
-                  <h2 className="text-2xl font-bold text-gray-800">Select a Model</h2>
-                  <p className="text-gray-500 mt-1">Choose which disease risk you want to predict</p>
+              <div className="space-y-8">
+                <div className="text-center space-y-1">
+                  <h2 className="text-3xl font-bold text-slate-800">Choose Assessment Type</h2>
+                  <p className="text-lg text-slate-500">Select the health category you wish to evaluate</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -125,16 +182,16 @@ export default function App() {
                       <button
                         key={disease.id}
                         onClick={() => handleSelectDisease(disease.id)}
-                        className={`group p-6 rounded-xl border-2 transition-all duration-200 text-left flex items-start space-x-4
-                          bg-white hover:${disease.bg} border-gray-200 hover:${disease.border} hover:shadow-md`}
+                        className={`group p-8 rounded-3xl border-2 transition-all duration-300 text-left flex items-start space-x-6
+                          bg-white hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-500/10 border-slate-100`}
                       >
-                        <div className={`p-3 rounded-xl ${disease.bg} ${disease.color} group-hover:scale-110 transition-transform`}>
-                          <Icon className="h-6 w-6" />
+                        <div className={`p-4 rounded-xl ${disease.bg} ${disease.color} group-hover:scale-110 transition-all`}>
+                          <Icon className="h-8 w-8" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-bold text-gray-900">{disease.name}</h3>
-                          <p className="text-sm text-gray-500 mt-1">
-                            Analyze health parameters to predict {disease.name.toLowerCase()} risk.
+                          <h3 className="text-2xl font-bold text-slate-800">{disease.name}</h3>
+                          <p className="text-base text-slate-500 mt-2 leading-relaxed">
+                            {disease.description}
                           </p>
                         </div>
                       </button>
@@ -146,83 +203,82 @@ export default function App() {
 
             {/* Step 2: Form */}
             {step === 'form' && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="flex items-center space-x-4 pb-6 border-b border-gray-100">
-                  <div className={`p-3 rounded-xl ${getDiseaseDeets()?.bg} ${getDiseaseDeets()?.color}`}>
+              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-6 duration-700">
+                <div className="flex items-center space-x-4 pb-4 border-b border-slate-100">
+                  <div className={`p-3 rounded-xl ${getDiseaseDeets()?.bg} ${getDiseaseDeets()?.color} shadow-sm`}>
                     {getDiseaseDeets() && (() => { const Icon = getDiseaseDeets().icon; return <Icon className="h-6 w-6" /> })()}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-800">{getDiseaseDeets()?.name} Assessment</h2>
-                    <p className="text-gray-500 mt-1">Enter your health parameters below</p>
+                    <h2 className="text-xl font-bold text-slate-800">{getDiseaseDeets()?.name} Analysis</h2>
+                    <p className="text-sm text-slate-500">Provide clinical measurements below</p>
                   </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Dynamic Form Fields based on Disease */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">Age</label>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-slate-700 uppercase">Patient Age</label>
                       <input
                         required
                         type="number"
                         name="age"
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                        placeholder="e.g. 45"
+                        className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300"
+                        placeholder="Years"
                       />
                     </div>
 
                     {selectedDisease === 'diabetes' && (
                       <>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">Glucose Level</label>
-                          <input required type="number" name="glucose" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="e.g. 120" />
+                        <div className="space-y-2">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">Glucose Level</label>
+                          <input required type="number" name="glucose" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300" placeholder="mg/dL" />
                         </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">BMI</label>
-                          <input required type="number" step="0.1" name="bmi" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="e.g. 25.5" />
+                        <div className="space-y-1">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">BMI</label>
+                          <input required type="number" step="0.1" name="bmi" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300" placeholder="kg/m²" />
                         </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">Blood Pressure</label>
-                          <input required type="number" name="bp" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="e.g. 80" />
+                        <div className="space-y-1">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">Blood Pressure</label>
+                          <input required type="number" name="bp" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300" placeholder="mmHg" />
                         </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">Insulin</label>
-                          <input required type="number" name="insulin" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="e.g. 30" />
+                        <div className="space-y-1">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">Insulin</label>
+                          <input required type="number" name="insulin" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300" placeholder="mu U/ml" />
                         </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">Pregnancies</label>
-                          <input required type="number" name="pregnancies" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="e.g. 2" />
+                        <div className="space-y-1">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">Pregnancies</label>
+                          <input required type="number" name="pregnancies" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300" placeholder="Count" />
                         </div>
                       </>
                     )}
 
                     {selectedDisease === 'heart' && (
                       <>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">Gender</label>
-                          <select required name="sex" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
-                            <option value="">Select Gender</option>
+                        <div className="space-y-1">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">Gender</label>
+                          <select required name="sex" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
+                            <option value="">Select</option>
                             <option value="1">Male</option>
                             <option value="0">Female</option>
                           </select>
                         </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">Chest Pain Type (1-4)</label>
-                          <input required type="number" min="1" max="4" name="cp" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="e.g. 2" />
+                        <div className="space-y-1">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">Chest Pain Type</label>
+                          <input required type="number" min="1" max="4" name="cp" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300" placeholder="Rating" />
                         </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">Cholesterol</label>
-                          <input required type="number" name="chol" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="e.g. 200" />
+                        <div className="space-y-1">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">Cholesterol</label>
+                          <input required type="number" name="chol" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300" placeholder="mg/dl" />
                         </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">Max Heart Rate</label>
-                          <input required type="number" name="thalach" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="e.g. 150" />
+                        <div className="space-y-1">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">Max Heart Rate</label>
+                          <input required type="number" name="thalach" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300" placeholder="BPM" />
                         </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">Exercise Angina</label>
-                          <select required name="exang" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
-                            <option value="">Select Option</option>
+                        <div className="space-y-1">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">Exercise Angina</label>
+                          <select required name="exang" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all">
+                            <option value="">Select</option>
                             <option value="1">Yes</option>
                             <option value="0">No</option>
                           </select>
@@ -232,61 +288,61 @@ export default function App() {
 
                     {selectedDisease === 'lung' && (
                       <>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">Smoking History (Years)</label>
-                          <input required type="number" name="smoking_history" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="e.g. 10" />
+                        <div className="space-y-1">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">Smoking History</label>
+                          <input required type="number" name="smoking_history" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300" placeholder="Years" />
                         </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">FEV1</label>
-                          <input required type="number" step="0.01" name="fev1" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="e.g. 1.5" />
+                        <div className="space-y-1">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">FEV1</label>
+                          <input required type="number" step="0.01" name="fev1" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300" placeholder="Liters" />
                         </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">FVC</label>
-                          <input required type="number" step="0.01" name="fvc" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="e.g. 2.5" />
+                        <div className="space-y-1">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">FVC</label>
+                          <input required type="number" step="0.01" name="fvc" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300" placeholder="Liters" />
                         </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">COPD Severity (1-4)</label>
-                          <input required type="number" min="1" max="4" name="copd_severity" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="e.g. 2" />
+                        <div className="space-y-1">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">COPD Severity</label>
+                          <input required type="number" min="1" max="4" name="copd_severity" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300" placeholder="Level" />
                         </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">CAT Score</label>
-                          <input required type="number" name="cat_score" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="e.g. 15" />
+                        <div className="space-y-1">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">CAT Score</label>
+                          <input required type="number" name="cat_score" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300" placeholder="Score" />
                         </div>
                       </>
                     )}
 
                     {selectedDisease === 'kidney' && (
                       <>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">Blood Pressure</label>
-                          <input required type="number" name="bp" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="e.g. 80" />
+                        <div className="space-y-1">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">Blood Pressure</label>
+                          <input required type="number" name="bp" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300" placeholder="mmHg" />
                         </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">Blood Urea</label>
-                          <input required type="number" name="bu" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="e.g. 35" />
+                        <div className="space-y-1">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">Blood Urea</label>
+                          <input required type="number" name="bu" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300" placeholder="mg/dl" />
                         </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">Serum Creatinine</label>
-                          <input required type="number" step="0.1" name="sc" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="e.g. 1.2" />
+                        <div className="space-y-1">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">Serum Creatinine</label>
+                          <input required type="number" step="0.1" name="sc" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300" placeholder="mg/dl" />
                         </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">Hemoglobin</label>
-                          <input required type="number" step="0.1" name="hemo" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="e.g. 12.5" />
+                        <div className="space-y-1">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">Hemoglobin</label>
+                          <input required type="number" step="0.1" name="hemo" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300" placeholder="gms" />
                         </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1">Specific Gravity</label>
-                          <input required type="number" step="0.001" name="sg" onChange={handleInputChange} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="e.g. 1.020" />
+                        <div className="space-y-1">
+                          <label className="block text-xs font-bold text-slate-700 uppercase">Specific Gravity</label>
+                          <input required type="number" step="0.001" name="sg" onChange={handleInputChange} className="w-full px-4 py-2 text-base rounded-xl border-2 border-slate-100 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300" placeholder="1.0xx" />
                         </div>
                       </>
                     )}
                   </div>
 
-                  <div className="pt-6">
+                  <div className="pt-2">
                     <button
                       type="submit"
-                      className="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-sm text-lg font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all transform hover:-translate-y-0.5"
+                      className="w-full flex justify-center py-3 px-6 border border-transparent rounded-2xl shadow-xl shadow-indigo-600/10 text-lg font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-indigo-500 transition-all transform hover:-translate-y-1"
                     >
-                      Analyze Risk
+                      Process Assessment
                     </button>
                   </div>
                 </form>
@@ -295,55 +351,96 @@ export default function App() {
 
             {/* Step 3: Loading */}
             {step === 'loading' && (
-              <div className="py-20 flex flex-col items-center justify-center space-y-6 text-center animate-in fade-in zoom-in duration-500">
-                <div className="relative">
-                  <div className="h-24 w-24 rounded-full border-t-4 border-b-4 border-indigo-600 animate-spin"></div>
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    {getDiseaseDeets() && (() => { const Icon = getDiseaseDeets().icon; return <Icon className={`h-8 w-8 ${getDiseaseDeets().color}`} /> })()}
+              <div className="py-8 flex flex-col items-center justify-center space-y-6 text-center animate-in fade-in zoom-in duration-500">
+                <div className="h-16 w-16 rounded-full border-4 border-slate-100 border-t-indigo-600 animate-spin"></div>
+                
+                <div className="space-y-4">
+                  <h3 className="text-xl font-bold text-slate-800">Processing Assessment</h3>
+                  <div className="space-y-2 text-left mx-auto inline-block">
+                    {LOADING_PHASES.map((phase, idx) => (
+                      <div key={idx} className={`flex items-center space-x-3 text-sm transition-all duration-200 ${idx === loadingPhase ? 'text-indigo-600 font-bold scale-[1.02]' : idx < loadingPhase ? 'text-green-500 opacity-60' : 'text-slate-300'}`}>
+                        <div className={`h-1.5 w-1.5 rounded-full ${idx === loadingPhase ? 'bg-indigo-600 animate-pulse' : idx < loadingPhase ? 'bg-green-500' : 'bg-slate-200'}`}></div>
+                        <span>{phase}</span>
+                      </div>
+                    ))}
                   </div>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">Analyzing Data...</h3>
-                  <p className="text-gray-500 mt-2">Our ML model is crunching the numbers.</p>
                 </div>
               </div>
             )}
 
             {/* Step 4: Result */}
             {step === 'result' && (
-              <div className="py-8 space-y-8 animate-in fade-in zoom-in-95 duration-500">
-                <div className="text-center space-y-4">
-                  <div className={`mx-auto h-24 w-24 rounded-full flex items-center justify-center ${result?.status === 'High Risk' ? 'bg-red-100' : 'bg-green-100'}`}>
-                    {getDiseaseDeets() && (() => { const Icon = getDiseaseDeets().icon; return <Icon className={`h-12 w-12 ${result?.status === 'High Risk' ? 'text-red-600' : 'text-green-600'}`} /> })()}
-                  </div>
-                  <h2 className="text-3xl font-extrabold text-gray-900">Assessment Complete</h2>
+              <div className="py-0 space-y-6 animate-in fade-in zoom-in-95 duration-700">
+                <div className="text-center space-y-1">
+                   <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest">Diagnostic Complete</p>
+                   <h2 className="text-2xl font-bold text-slate-800">Risk Assessment Summary</h2>
                 </div>
 
-                <div className={`p-8 rounded-2xl border-2 ${result?.status === 'High Risk' ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'}`}>
-                  <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="text-center md:text-left text-gray-800">
-                      <p className="text-sm font-semibold tracking-wider uppercase opacity-80 mb-1">Risk Level</p>
-                      <h3 className={`text-4xl font-black ${result?.status === 'High Risk' ? 'text-red-700' : 'text-green-700'}`}>
-                        {result?.status}
-                      </h3>
-                      <p className="mt-2 text-lg opacity-90 max-w-md">
-                        {result?.message}
-                      </p>
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+                  {/* Risk Meter Section */}
+                  <div className="xl:col-span-12 2xl:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-8 items-center bg-slate-50/80 p-6 rounded-4xl border border-slate-100 relative overflow-hidden group">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                         <span className="text-xs font-bold text-slate-500 uppercase">Calculated Level</span>
+                         <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase ${result?.status === 'High Risk' ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
+                           {result?.status}
+                         </span>
+                      </div>
+                    
+                    <div className="space-y-4">
+                      <div className="relative h-8 w-full bg-slate-200 rounded-full overflow-hidden shadow-inner flex p-1">
+                          <div className="h-full bg-green-500 w-[30%] rounded-l-full"></div>
+                          <div className="h-full bg-yellow-500 w-[40%]"></div>
+                          <div className="h-full bg-red-500 w-[30%] rounded-r-full"></div>
+                          
+                          <div 
+                            className="absolute top-0 bottom-0 w-2.5 bg-slate-900 border-x border-white/40 shadow-xl transition-all duration-[1.5s] ease-out-back z-10"
+                            style={{ left: `${result?.riskScore}%`, transform: 'translateX(-50%)' }}
+                          ></div>
+                      </div>
+                      <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
+                        <span>Low</span>
+                        <span>Moderate</span>
+                        <span>High</span>
+                      </div>
                     </div>
 
-                    <div className="flex flex-col items-center justify-center bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                      <span className="text-5xl font-black text-gray-900">{result?.riskScore}<span className="text-2xl text-gray-400">%</span></span>
-                      <span className="text-sm font-medium text-gray-500 mt-1">Confidence Score</span>
+                      <div className="text-center space-y-0">
+                         <div className="text-6xl font-bold text-slate-800">
+                            {result?.riskScore}<span className="text-xl text-slate-400 ml-1">%</span>
+                         </div>
+                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Probability</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex items-start space-x-3">
+                        <div className={`p-2 rounded-xl shrink-0 ${result?.status === 'High Risk' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
+                          {result?.status === 'High Risk' ? <AlertCircle className="h-6 w-6" /> : <CheckCircle2 className="h-6 w-6" />}
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-slate-800">Summary</h3>
+                          <p className="text-sm text-slate-600 mt-1 leading-relaxed">
+                            {getRiskSummary(result?.status, result?.riskScore)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="bg-white/50 p-4 rounded-2xl border border-slate-100">
+                         <p className="text-xs text-slate-700 leading-relaxed font-medium">
+                            {result?.message}
+                         </p>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-6">
+                <div className="pt-2">
                   <button
                     onClick={() => setStep('selection')}
-                    className="w-full flex justify-center py-4 px-4 border-2 border-gray-200 rounded-xl shadow-sm text-lg font-bold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200 transition-all"
+                    className="w-full flex justify-center py-3 px-4 border border-slate-200 rounded-2xl text-lg font-bold text-slate-500 bg-white hover:bg-slate-50 transition-all hover:text-indigo-600"
                   >
-                    Start New Assessment
+                    New Assessment
                   </button>
                 </div>
               </div>
@@ -351,11 +448,10 @@ export default function App() {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="text-center opacity-60 text-sm">
-          <p>Demo purpose only. Do not use for medical diagnosis.</p>
-        </div>
+        {/* Footer Space Filler */}
+        <div className="h-4"></div>
       </div>
     </div>
   );
 }
+
