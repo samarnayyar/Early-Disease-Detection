@@ -24,6 +24,20 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
         </div>
       </div>
 
+      <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 flex items-start space-x-3 shadow-sm">
+        <div className="p-2 bg-blue-500/20 rounded-xl shrink-0">
+          <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-sm font-bold text-blue-400">Clinical Guidelines</p>
+          <p className="text-xs font-medium text-slate-300 mt-0.5 leading-relaxed">
+            Please enter any information you are aware of. For a valid assessment, you must provide a minimum of <strong>3 features</strong> (including your Age). Missing fields will be securely estimated using clinical baselines.
+          </p>
+        </div>
+      </div>
+
       <form onSubmit={onSubmit} className="space-y-6">
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

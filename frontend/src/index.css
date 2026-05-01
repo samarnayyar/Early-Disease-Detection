@@ -7,3 +7,15 @@ body {
   background-color: #f3f4f6;
   font-family: system-ui, -apple-system, sans-serif;
 }
+
+/* Hide number input spinners (arrows) in WebKit browsers (Chrome, Safari, Edge) */
+input[type="number"]::-webkit-inner-spin-button, 
+input[type="number"]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
+/* Hide number input spinners in Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
