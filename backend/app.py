@@ -4,13 +4,27 @@ import joblib
 import pandas as pd
 import numpy as np
 import os
+import sys
 import shap
+import jwt
+import datetime
+
+# Add the parent directory to sys path so we can import the external database folder
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+sys.path.append(BASE_DIR)
+MODELS_DIR = os.path.join(BASE_DIR, 'models')
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-MODELS_DIR = os.path.join(BASE_DIR, 'models')
+# Register Auth & History Blueprints
+from database.auth_routes import auth_bp
+from database.history_routes import history_bp
+app.register_blueprint(auth_bp, url_prefix='/api/auth')
+app.register_blueprint(history_bp, url_prefix='/api')
+
+from database.db import predictions_collection
+from database.auth_middleware import JWT_SECRET
 
 # Default features used for median imputation if values are not provided
 MODEL_DEFAULTS = {
@@ -81,6 +95,17 @@ def predict():
         data = request.json
         disease = data.get('disease')
         
+        # Optional: Identify if a user is logged in
+        auth_header = request.headers.get('Authorization')
+        user_id = None
+        if auth_header and auth_header.startswith('Bearer '):
+            token = auth_header.split(" ")[1]
+            try:
+                decoded = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+                user_id = decoded.get("user_id")
+            except Exception:
+                pass # Ignore invalid tokens, just run prediction as guest
+
         if not disease or disease not in models:
             return jsonify({'error': f'Model for {disease} not found.'}), 404
             
@@ -313,9 +338,25 @@ def predict():
         except Exception as e:
             print("SHAP Error:", e)
 
+        final_risk = max(0, min(100, risk_score))
+
+        # Save to database if user is logged in
+        if user_id:
+            try:
+                predictions_collection.insert_one({
+                    "user_id": user_id,
+                    "disease": disease,
+                    "input_data": data,
+                    "risk_score": final_risk,
+                    "status": status,
+                    "created_at": datetime.datetime.utcnow()
+                })
+            except Exception as e:
+                print("DB Save Error:", e)
+
         return jsonify({
             'status': status,
-            'riskScore': max(0, min(100, risk_score)),
+            'riskScore': final_risk,
             'message': message,
             'disease': disease,
             'breakdown': breakdown

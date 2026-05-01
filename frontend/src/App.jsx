@@ -6,6 +6,8 @@ import DiseaseSelection from './components/DiseaseSelection';
 import AssessmentForm from './components/AssessmentForm';
 import LoadingScreen from './components/LoadingScreen';
 import ResultSummary from './components/ResultSummary';
+import AuthModal from './components/AuthModal';
+import HistoryView from './components/HistoryView';
 
 import { LOADING_PHASES, DISEASES } from './constants/diseases';
 
@@ -17,6 +19,7 @@ export default function App() {
   const [loadingPhase, setLoadingPhase] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -38,7 +41,7 @@ export default function App() {
   };
 
   const handleBack = () => {
-    if (step === 'form') {
+    if (step === 'form' || step === 'history') {
       setStep('selection');
       setSelectedDisease(null);
     } else if (step === 'result') {
@@ -48,7 +51,12 @@ export default function App() {
   };
 
   const handleLogin = () => {
-    setUser({ name: "Demo User" });
+    setIsAuthModalOpen(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('medpredict_token');
+    setUser(null);
   };
 
   const handleSubmit = async (e) => {
@@ -61,17 +69,23 @@ export default function App() {
       return;
     }
 
-    if (otherParams.length === 0) {
-      alert("Please provide at least one clinical measurement for a valid assessment.");
+    if (otherParams.length < 2) {
+      alert("Please provide at least 2 additional clinical measurements (3 features total) for a valid assessment.");
       return;
     }
 
     setStep('loading');
 
     try {
+      const token = localStorage.getItem('medpredict_token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch('http://localhost:5000/predict', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: headers,
         body: JSON.stringify({ disease: selectedDisease, ...formData }),
       });
 
@@ -105,6 +119,12 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#0f172a] text-slate-200 font-sans flex overflow-hidden selection:bg-blue-500/30">
       
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+        onLoginSuccess={(userData) => setUser(userData)} 
+      />
+
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
         <div 
@@ -147,24 +167,41 @@ export default function App() {
 
           <div className="space-y-2">
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider px-3 mb-4">Account</p>
-            <button className="w-full flex items-center space-x-3 px-4 py-3 rounded-2xl text-slate-400 hover:bg-slate-800/50 hover:text-white border border-transparent transition-all duration-300">
-              <History className="h-5 w-5" />
+            <button 
+              onClick={() => {
+                if (!user) {
+                  setIsAuthModalOpen(true);
+                  return;
+                }
+                setStep('history');
+                setIsSidebarOpen(false);
+              }}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all duration-300 ${step === 'history' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)]' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white border border-transparent'}`}
+            >
+              <History className={`h-5 w-5 ${step === 'history' ? 'text-blue-400' : ''}`} />
               <span className="font-semibold">View History</span>
-              <span className="ml-auto text-[10px] py-1 px-2 rounded-full bg-slate-800 text-slate-500 font-bold border border-slate-700">SOON</span>
             </button>
           </div>
         </div>
 
         <div className="p-6 border-t border-slate-700/50">
           {user ? (
-            <div className="flex items-center space-x-3 p-3 rounded-2xl bg-slate-800/50 border border-slate-700">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                {user.name.charAt(0)}
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3 p-3 rounded-2xl bg-slate-800/50 border border-slate-700">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <p className="text-sm font-bold text-white truncate">{user.name}</p>
+                  <p className="text-xs text-slate-400 truncate">{user.email}</p>
+                </div>
               </div>
-              <div className="flex-1 overflow-hidden">
-                <p className="text-sm font-bold text-white truncate">{user.name}</p>
-                <p className="text-xs text-slate-400">Free Tier</p>
-              </div>
+              <button 
+                onClick={handleLogout}
+                className="w-full py-2.5 px-4 text-sm font-bold text-slate-400 hover:text-red-400 bg-slate-800/30 hover:bg-red-500/10 rounded-xl transition-colors border border-transparent hover:border-red-500/20"
+              >
+                Sign Out
+              </button>
             </div>
           ) : (
             <button onClick={handleLogin} className="w-full flex items-center justify-center space-x-2 py-3 px-4 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-400 hover:to-cyan-500 text-white rounded-2xl font-bold transition-all shadow-lg shadow-blue-500/25">
@@ -214,7 +251,7 @@ export default function App() {
                     className="flex items-center text-sm font-bold text-slate-400 hover:text-white transition-all transform hover:-translate-x-1"
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to {step === 'form' ? 'Dashboard' : 'Assessment'}
+                    Back to Dashboard
                   </button>
                 </div>
               )}
@@ -222,6 +259,10 @@ export default function App() {
               <div className="p-8 md:p-12">
                 {step === 'selection' && (
                   <DiseaseSelection onSelect={handleSelectDisease} />
+                )}
+
+                {step === 'history' && (
+                  <HistoryView onBack={handleBack} />
                 )}
 
                 {step === 'form' && (
