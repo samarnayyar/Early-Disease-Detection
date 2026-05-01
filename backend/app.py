@@ -252,7 +252,16 @@ def predict():
         try:
             if hasattr(model, "predict_proba"):
                 probs = model.predict_proba(input_df)[0]
-                risk_score = int(probs[-1] * 100)
+                if len(probs) == 3:
+                    # For 3-class models (like Lung): 0=Low, 1=Moderate, 2=High
+                    # Weighted sum: Mod risk adds 65% severity, High risk adds 100% severity
+                    risk_score = int((probs[1] * 0.65 + probs[2] * 1.0) * 100)
+                elif len(probs) == 5:
+                    # For 5-class models (like Heart): 0=Healthy, 1,2,3,4=Heart Disease
+                    # Sum all disease classes to get overall risk of any heart disease
+                    risk_score = int(sum(probs[1:]) * 100)
+                else:
+                    risk_score = int(probs[-1] * 100)
 
             elif hasattr(model, "decision_function"):
                 import numpy as np

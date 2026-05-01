@@ -16,6 +16,7 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [loadingPhase, setLoadingPhase] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -113,7 +114,7 @@ export default function App() {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed lg:static inset-y-0 left-0 w-72 bg-[#1e293b]/95 backdrop-blur-md border-r border-slate-700/50 z-50 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col shadow-2xl`}>
+      <aside className={`fixed ${isDesktopSidebarOpen ? 'lg:static lg:translate-x-0' : 'lg:hidden'} inset-y-0 left-0 w-72 bg-[#1e293b]/95 backdrop-blur-md border-r border-slate-700/50 z-50 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out flex flex-col shadow-2xl`}>
         <div className="p-6 border-b border-slate-700/50 flex items-center justify-between">
           <button 
             onClick={() => { setStep('selection'); setSelectedDisease(null); setIsSidebarOpen(false); }}
@@ -176,13 +177,24 @@ export default function App() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-800/40 via-[#0f172a] to-[#0f172a]">
-        {/* Mobile Header */}
-        <header className="lg:hidden flex items-center justify-between p-4 border-b border-slate-800 bg-[#0f172a]/80 backdrop-blur-md">
-          <button onClick={() => { setStep('selection'); setSelectedDisease(null); }} className="flex items-center space-x-2 focus:outline-none">
-            <ActivitySquare className="h-6 w-6 text-blue-400" />
-            <span className="text-lg font-bold text-white">MedPredict</span>
-          </button>
-          <button className="p-2 rounded-xl bg-slate-800 text-slate-400" onClick={() => setIsSidebarOpen(true)}>
+        {/* Universal Header */}
+        <header className="flex items-center justify-between p-4 border-b border-slate-800 bg-[#0f172a]/80 backdrop-blur-md">
+          <div className="flex items-center space-x-4">
+            <button 
+              className="p-2 rounded-xl bg-slate-800 text-slate-400 hidden lg:block hover:text-white transition-colors" 
+              onClick={() => setIsDesktopSidebarOpen(!isDesktopSidebarOpen)}
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <button 
+              onClick={() => { setStep('selection'); setSelectedDisease(null); }} 
+              className={`flex items-center space-x-2 focus:outline-none ${isDesktopSidebarOpen ? 'lg:hidden' : 'lg:flex'}`}
+            >
+              <ActivitySquare className="h-6 w-6 text-blue-400" />
+              <span className="text-lg font-bold text-white">MedPredict</span>
+            </button>
+          </div>
+          <button className="p-2 rounded-xl bg-slate-800 text-slate-400 lg:hidden" onClick={() => setIsSidebarOpen(true)}>
             <Menu className="h-5 w-5" />
           </button>
         </header>
