@@ -77,8 +77,8 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
                 <input type="number" min="0" step="0.01" name="dpf" value={formData.dpf || ''} onChange={onInputChange} className={inputClass} placeholder="e.g. 0.5" />
               </div>
               <div>
-                <label className={labelClass}>Pregnancies</label>
-                <select name="pregnancies" value={formData.pregnancies || ''} onChange={onInputChange} className={inputClass}>
+                <label className={labelClass}>Pregnancies <span className="text-red-400 ml-1">*</span></label>
+                <select required name="pregnancies" value={formData.pregnancies || ''} onChange={onInputChange} className={inputClass}>
                   <option value="" className="bg-neutral-100">Select Count</option>
                   {[...Array(15).keys()].map(num => (
                     <option key={num} value={num} className="bg-neutral-100">{num}</option>
@@ -189,8 +189,8 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
                 </select>
               </div>
               <div>
-                <label className={labelClass}>Gender</label>
-                <select name="gender" value={formData.gender || ''} onChange={onInputChange} className={inputClass}>
+                <label className={labelClass}>Gender <span className="text-red-400 ml-1">*</span></label>
+                <select required name="gender" value={formData.gender || ''} onChange={onInputChange} className={inputClass}>
                   <option value="" className="bg-neutral-100">Select</option>
                   <option value="1" className="bg-neutral-100">Male</option>
                   <option value="0" className="bg-neutral-100">Female</option>

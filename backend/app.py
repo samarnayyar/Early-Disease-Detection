@@ -54,10 +54,10 @@ MODEL_DEFAULTS = {
 
 # Features that MUST be provided by the user (no defaults allowed)
 REQUIRED_FEATURES = {
-    'diabetes': ['age', 'glucose'],
+    'diabetes': ['age', 'glucose', 'pregnancies'],
     'heart': ['age', 'sex'],
     'kidney': ['age', 'bp'],
-    'lung': ['age', 'smoking_history']
+    'lung': ['age', 'smoking_history', 'gender']
 }
 
 models = {}
