@@ -16,8 +16,6 @@ MODELS_DIR = os.path.join(BASE_DIR, 'models')
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
-
-# Register Auth & History Blueprints
 from database.auth_routes import auth_bp
 from database.history_routes import history_bp
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -52,6 +50,14 @@ MODEL_DEFAULTS = {
         'FEV1': 1.5, 'FEV1PRED': 60.0, 'FVC': 2.5, 'FVCPRED': 70.0, 'CAT': 15.0, 'HAD': 10.0,
         'SGRQ': 40.0, 'gender': 1.0, 'smoking': 1.0, 'Diabetes': 0.0, 'muscular': 0.0, 'AtrialFib': 0.0
     }
+}
+
+# Features that MUST be provided by the user (no defaults allowed)
+REQUIRED_FEATURES = {
+    'diabetes': ['age', 'glucose'],
+    'heart': ['age', 'sex'],
+    'kidney': ['age', 'bp'],
+    'lung': ['age', 'smoking_history']
 }
 
 models = {}
@@ -109,6 +115,16 @@ def predict():
         if not disease or disease not in models:
             return jsonify({'error': f'Model for {disease} not found.'}), 404
             
+        # Validate mandatory features
+        required = REQUIRED_FEATURES.get(disease, [])
+        missing = [f for f in required if data.get(f) is None or str(data.get(f)).strip() == '']
+        if missing:
+            readable_missing = [m.replace('_', ' ').capitalize() for m in missing]
+            return jsonify({
+                'error': f"Missing mandatory information: {', '.join(readable_missing)}",
+                'details': f"To provide an accurate assessment, {', '.join(readable_missing)} is required."
+            }), 400
+
         model = models[disease]
         
         #models using specific defaults

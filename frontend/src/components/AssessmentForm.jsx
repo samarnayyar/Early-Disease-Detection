@@ -53,8 +53,8 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
           {selectedDisease === 'diabetes' && (
             <>
               <div>
-                <label className={labelClass}>Glucose Level</label>
-                <input type="number" min="0" name="glucose" value={formData.glucose || ''} onChange={onInputChange} className={inputClass} placeholder="mg/dL" />
+                <label className={labelClass}>Glucose Level <span className="text-red-400 ml-1">*</span></label>
+                <input required type="number" min="0" name="glucose" value={formData.glucose || ''} onChange={onInputChange} className={inputClass} placeholder="mg/dL" />
               </div>
               <div>
                 <label className={labelClass}>BMI</label>
@@ -92,8 +92,8 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
           {selectedDisease === 'heart' && (
             <>
               <div>
-                <label className={labelClass}>Gender</label>
-                <select name="sex" value={formData.sex || ''} onChange={onInputChange} className={inputClass}>
+                <label className={labelClass}>Gender <span className="text-red-400 ml-1">*</span></label>
+                <select required name="sex" value={formData.sex || ''} onChange={onInputChange} className={inputClass}>
                   <option value="" className="bg-neutral-100">Select</option>
                   <option value="1" className="bg-neutral-100">Male</option>
                   <option value="0" className="bg-neutral-100">Female</option>
@@ -157,8 +157,8 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
           {selectedDisease === 'lung' && (
             <>
               <div>
-                <label className={labelClass}>Smoking History (Pack-years)</label>
-                <input type="number" min="0" name="smoking_history" value={formData.smoking_history || ''} onChange={onInputChange} className={inputClass} placeholder="0 for non-smoker" />
+                <label className={labelClass}>Smoking History (Pack-years) <span className="text-red-400 ml-1">*</span></label>
+                <input required type="number" min="0" name="smoking_history" value={formData.smoking_history || ''} onChange={onInputChange} className={inputClass} placeholder="0 for non-smoker" />
               </div>
               <div>
                 <label className={labelClass}>Currently Smoking</label>
@@ -203,8 +203,8 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
           {selectedDisease === 'kidney' && (
             <>
               <div>
-                <label className={labelClass}>Blood Pressure</label>
-                <input type="number" min="0" name="bp" value={formData.bp || ''} onChange={onInputChange} className={inputClass} placeholder="mmHg" />
+                <label className={labelClass}>Blood Pressure <span className="text-red-400 ml-1">*</span></label>
+                <input required type="number" min="0" name="bp" value={formData.bp || ''} onChange={onInputChange} className={inputClass} placeholder="mmHg" />
               </div>
               <div>
                 <label className={labelClass}>Specific Gravity</label>
