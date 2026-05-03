@@ -1,10 +1,9 @@
 @import "tailwindcss";
-
 body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  background-color: #f3f4f6;
+  background-color: #f4f0e6;
   font-family: system-ui, -apple-system, sans-serif;
 }
 
@@ -18,4 +17,5 @@ input[type="number"]::-webkit-outer-spin-button {
 /* Hide number input spinners in Firefox */
 input[type="number"] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }

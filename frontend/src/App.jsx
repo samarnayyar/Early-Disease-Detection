@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, User, History, Menu, X, LogIn, ActivitySquare } from 'lucide-react';
+import { ArrowLeft, User, History, Menu, X, LogIn, ActivitySquare, Moon, Sun } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Main Component Modules
 import DiseaseSelection from './components/DiseaseSelection';
@@ -21,6 +22,8 @@ export default function App() {
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [user, setUser] = useState(null);
+
+
 
   useEffect(() => {
     let interval;
@@ -55,7 +58,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('medpredict_token');
+    localStorage.removeItem('wellcore_token');
     setUser(null);
   };
 
@@ -77,7 +80,7 @@ export default function App() {
     setStep('loading');
 
     try {
-      const token = localStorage.getItem('medpredict_token');
+      const token = localStorage.getItem('wellcore_token');
       const headers = { 'Content-Type': 'application/json' };
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
@@ -117,7 +120,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-slate-200 font-sans flex overflow-hidden selection:bg-blue-500/30">
+    <div className="min-h-screen bg-[#f4f0e6] text-neutral-800 font-sans flex overflow-hidden selection:bg-blue-500/30">
       
       <AuthModal 
         isOpen={isAuthModalOpen} 
@@ -134,39 +137,36 @@ export default function App() {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed ${isDesktopSidebarOpen ? 'lg:static lg:translate-x-0' : 'lg:hidden'} inset-y-0 left-0 w-72 bg-[#1e293b]/95 backdrop-blur-md border-r border-slate-700/50 z-50 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out flex flex-col shadow-2xl`}>
-        <div className="p-6 border-b border-slate-700/50 flex items-center justify-between">
+      <aside className={`fixed ${isDesktopSidebarOpen ? 'lg:static lg:translate-x-0' : 'lg:hidden'} inset-y-0 left-0 w-72 bg-[#f4f0e6] backdrop-blur-md border-r border-neutral-300/50 z-50 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out flex flex-col shadow-2xl`}>
+        <div className="p-6 border-b border-neutral-300/50 flex items-center justify-between">
           <button 
             onClick={() => { setStep('selection'); setSelectedDisease(null); setIsSidebarOpen(false); }}
             className="flex items-center space-x-3 hover:opacity-80 transition-opacity focus:outline-none"
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <ActivitySquare className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">MedPredict</span>
+            <span className="text-3xl font-black text-neutral-900 tracking-tight">Wellcore</span>
           </button>
-          <button className="lg:hidden text-slate-400 hover:text-white transition-colors" onClick={() => setIsSidebarOpen(false)}>
+          <button className="lg:hidden text-neutral-600 hover:text-neutral-900 transition-colors" onClick={() => setIsSidebarOpen(false)}>
             <X className="h-6 w-6" />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto py-6 px-4 space-y-8">
           <div className="space-y-2">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider px-3 mb-4">Diagnostics</p>
+            <p className="text-xs font-bold text-neutral-500 uppercase tracking-wider px-3 mb-4">Diagnostics</p>
             {DISEASES.map(disease => (
               <button
                 key={disease.id}
                 onClick={() => handleSelectDisease(disease.id)}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all duration-300 ${selectedDisease === disease.id && step !== 'selection' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)]' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white border border-transparent'}`}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${selectedDisease === disease.id && step !== 'selection' ? 'bg-neutral-100 text-neutral-900 font-semibold' : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900'}`}
               >
-                <disease.icon className={`h-5 w-5 ${selectedDisease === disease.id && step !== 'selection' ? 'text-blue-400' : ''}`} />
+                <disease.icon className="h-5 w-5" />
                 <span className="font-semibold">{disease.name}</span>
               </button>
             ))}
           </div>
 
           <div className="space-y-2">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider px-3 mb-4">Account</p>
+            <p className="text-xs font-bold text-neutral-500 uppercase tracking-wider px-3 mb-4">Account</p>
             <button 
               onClick={() => {
                 if (!user) {
@@ -176,35 +176,35 @@ export default function App() {
                 setStep('history');
                 setIsSidebarOpen(false);
               }}
-              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all duration-300 ${step === 'history' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)]' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white border border-transparent'}`}
+              className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 ${step === 'history' ? 'bg-neutral-100 text-neutral-900 font-semibold' : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900'}`}
             >
-              <History className={`h-5 w-5 ${step === 'history' ? 'text-blue-400' : ''}`} />
+              <History className="h-5 w-5" />
               <span className="font-semibold">View History</span>
             </button>
           </div>
         </div>
 
-        <div className="p-6 border-t border-slate-700/50">
+        <div className="p-6 border-t border-neutral-300/50">
           {user ? (
             <div className="space-y-3">
-              <div className="flex items-center space-x-3 p-3 rounded-2xl bg-slate-800/50 border border-slate-700">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+              <div className="flex items-center space-x-3 p-3 rounded-lg bg-neutral-100/50 border border-neutral-300">
+                <div className="w-10 h-10 rounded-full bg-linear-to-r from-emerald-400 to-teal-500 flex items-center justify-center text-neutral-900 font-bold text-lg shadow-lg">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 overflow-hidden">
-                  <p className="text-sm font-bold text-white truncate">{user.name}</p>
-                  <p className="text-xs text-slate-400 truncate">{user.email}</p>
+                  <p className="text-sm font-bold text-neutral-900 truncate">{user.name}</p>
+                  <p className="text-xs text-neutral-600 truncate">{user.email}</p>
                 </div>
               </div>
               <button 
                 onClick={handleLogout}
-                className="w-full py-2.5 px-4 text-sm font-bold text-slate-400 hover:text-red-400 bg-slate-800/30 hover:bg-red-500/10 rounded-xl transition-colors border border-transparent hover:border-red-500/20"
+                className="w-full py-2.5 px-4 text-sm font-bold text-neutral-600 hover:text-red-400 bg-neutral-100/30 hover:bg-red-500/10 rounded-md transition-colors border border-transparent hover:border-red-500/20"
               >
                 Sign Out
               </button>
             </div>
           ) : (
-            <button onClick={handleLogin} className="w-full flex items-center justify-center space-x-2 py-3 px-4 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-400 hover:to-cyan-500 text-white rounded-2xl font-bold transition-all shadow-lg shadow-blue-500/25">
+            <button onClick={handleLogin} className="w-full flex items-center justify-center space-x-2 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors">
               <LogIn className="h-5 w-5" />
               <span>Login / Sign Up</span>
             </button>
@@ -213,12 +213,12 @@ export default function App() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-800/40 via-[#0f172a] to-[#0f172a]">
+      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#f4f0e6]">
         {/* Universal Header */}
-        <header className="flex items-center justify-between p-4 border-b border-slate-800 bg-[#0f172a]/80 backdrop-blur-md">
+        <header className="flex items-center justify-between p-4 border-b border-neutral-200 bg-[#f4f0e6]/80 backdrop-blur-md">
           <div className="flex items-center space-x-4">
             <button 
-              className="p-2 rounded-xl bg-slate-800 text-slate-400 hidden lg:block hover:text-white transition-colors" 
+              className="p-2 rounded-md bg-neutral-100 text-neutral-600 hidden lg:block hover:text-neutral-900 transition-colors" 
               onClick={() => setIsDesktopSidebarOpen(!isDesktopSidebarOpen)}
             >
               <Menu className="h-5 w-5" />
@@ -227,28 +227,29 @@ export default function App() {
               onClick={() => { setStep('selection'); setSelectedDisease(null); }} 
               className={`flex items-center space-x-2 focus:outline-none ${isDesktopSidebarOpen ? 'lg:hidden' : 'lg:flex'}`}
             >
-              <ActivitySquare className="h-6 w-6 text-blue-400" />
-              <span className="text-lg font-bold text-white">MedPredict</span>
+              <span className="text-2xl font-black text-neutral-900 tracking-tight">Wellcore</span>
             </button>
           </div>
-          <button className="p-2 rounded-xl bg-slate-800 text-slate-400 lg:hidden" onClick={() => setIsSidebarOpen(true)}>
-            <Menu className="h-5 w-5" />
-          </button>
+          <div className="flex items-center space-x-2">
+            <button className="p-2 rounded-md bg-neutral-100 text-neutral-600 lg:hidden" onClick={() => setIsSidebarOpen(true)}>
+              <Menu className="h-5 w-5" />
+            </button>
+          </div>
         </header>
 
         <div className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-12">
           <div className="max-w-4xl mx-auto">
             {/* Dynamic UI Panel */}
-            <div className="bg-[#1e293b]/80 backdrop-blur-xl shadow-2xl rounded-[2rem] border border-slate-700/50 overflow-hidden relative">
+            <div className="bg-[#f4f0e6]/80 backdrop-blur-xl shadow-2xl rounded-md border border-neutral-300/50 overflow-hidden relative">
               
               {/* Decorative Glow */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-px bg-linear-to-r from-transparent via-neutral-400/50 to-transparent"></div>
               
               {step !== 'selection' && step !== 'loading' && (
-                <div className="px-8 py-4 border-b border-slate-700/50 bg-[#1e293b]/50">
+                <div className="px-8 py-4 border-b border-neutral-300/50 bg-[#f4f0e6]/50">
                   <button
                     onClick={handleBack}
-                    className="flex items-center text-sm font-bold text-slate-400 hover:text-white transition-all transform hover:-translate-x-1"
+                    className="flex items-center text-sm font-bold text-neutral-600 hover:text-neutral-900 transition-all transform hover:-translate-x-1"
                   >
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back to Dashboard
@@ -256,37 +257,49 @@ export default function App() {
                 </div>
               )}
 
-              <div className="p-8 md:p-12">
-                {step === 'selection' && (
-                  <DiseaseSelection onSelect={handleSelectDisease} />
-                )}
+              <div className="p-8 md:p-12 overflow-hidden">
+                <AnimatePresence mode="wait">
+                  {step === 'selection' && (
+                    <motion.div key="selection" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.2 }}>
+                      <DiseaseSelection onSelect={handleSelectDisease} />
+                    </motion.div>
+                  )}
 
-                {step === 'history' && (
-                  <HistoryView onBack={handleBack} />
-                )}
+                  {step === 'history' && (
+                    <motion.div key="history" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.2 }}>
+                      <HistoryView onBack={handleBack} />
+                    </motion.div>
+                  )}
 
-                {step === 'form' && (
-                  <AssessmentForm
-                    selectedDisease={selectedDisease}
-                    formData={formData}
-                    onInputChange={handleInputChange}
-                    onSubmit={handleSubmit}
-                  />
-                )}
+                  {step === 'form' && (
+                    <motion.div key="form" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.2 }}>
+                      <AssessmentForm
+                        selectedDisease={selectedDisease}
+                        formData={formData}
+                        onInputChange={handleInputChange}
+                        onSubmit={handleSubmit}
+                      />
+                    </motion.div>
+                  )}
 
-                {step === 'loading' && (
-                  <LoadingScreen loadingPhase={loadingPhase} />
-                )}
+                  {step === 'loading' && (
+                    <motion.div key="loading" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} transition={{ duration: 0.2 }}>
+                      <LoadingScreen loadingPhase={loadingPhase} />
+                    </motion.div>
+                  )}
 
-                {step === 'result' && (
-                  <ResultSummary
-                    result={result}
-                    onReset={() => {
-                      setStep('selection');
-                      setSelectedDisease(null);
-                    }}
-                  />
-                )}
+                  {step === 'result' && (
+                    <motion.div key="result" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+                      <ResultSummary
+                        result={result}
+                        onReset={() => {
+                          setStep('selection');
+                          setSelectedDisease(null);
+                        }}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </div>

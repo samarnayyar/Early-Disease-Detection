@@ -5,13 +5,13 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
   const disease = DISEASES.find(d => d.id === selectedDisease);
   const Icon = disease?.icon;
 
-  const inputClass = "w-full px-4 py-3 text-base rounded-2xl bg-slate-800/50 border-2 border-slate-700/50 text-white focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all placeholder:text-slate-500";
-  const labelClass = "block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2";
+  const inputClass = "w-full px-4 py-3 text-base rounded-lg bg-[#f4f0e6] border border-neutral-300 text-neutral-900 focus:ring-2 focus:ring-neutral-900/20 focus:border-neutral-900 outline-none transition-all placeholder:text-neutral-500";
+  const labelClass = "block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-2";
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
-      <div className="flex items-center space-x-5 pb-6 border-b border-slate-700/50">
-        <div className={`p-4 rounded-3xl ${disease?.bg} shadow-lg flex items-center justify-center border border-white/10`}>
+      <div className="flex items-center space-x-5 pb-6 border-b border-neutral-300/50">
+        <div className={`p-4 rounded-lg ${disease?.bg} shadow-lg flex items-center justify-center border border-black/10`}>
           {disease?.image ? (
             <img src={disease?.image} alt={disease?.name} className="h-16 w-16 object-contain drop-shadow-xl" />
           ) : (
@@ -19,20 +19,20 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
           )}
         </div>
         <div>
-          <h2 className="text-3xl font-black text-white tracking-tight">{disease?.name} Analysis</h2>
-          <p className="text-sm font-medium text-slate-400 mt-1">Provide clinical measurements below</p>
+          <h2 className="text-3xl font-black text-neutral-900 tracking-tight">{disease?.name} Analysis</h2>
+          <p className="text-sm font-medium text-neutral-600 mt-1">Provide clinical measurements below</p>
         </div>
       </div>
 
-      <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4 flex items-start space-x-3 shadow-sm">
-        <div className="p-2 bg-blue-500/20 rounded-xl shrink-0">
-          <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="bg-neutral-100 border border-neutral-200 rounded-lg p-4 flex items-start space-x-3 shadow-sm">
+        <div className="p-2 bg-neutral-200 rounded-lg shrink-0">
+          <svg className="w-5 h-5 text-neutral-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
         <div>
-          <p className="text-sm font-bold text-blue-400">Clinical Guidelines</p>
-          <p className="text-xs font-medium text-slate-300 mt-0.5 leading-relaxed">
+          <p className="text-sm font-bold text-neutral-900">Clinical Guidelines</p>
+          <p className="text-xs font-medium text-neutral-700 mt-0.5 leading-relaxed">
             Please enter any information you are aware of. For a valid assessment, you must provide a minimum of <strong>3 features</strong> (including your Age). Missing fields will be securely estimated using clinical baselines.
           </p>
         </div>
@@ -79,9 +79,9 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
               <div>
                 <label className={labelClass}>Pregnancies</label>
                 <select name="pregnancies" value={formData.pregnancies || ''} onChange={onInputChange} className={inputClass}>
-                  <option value="" className="bg-slate-800">Select Count</option>
+                  <option value="" className="bg-neutral-100">Select Count</option>
                   {[...Array(15).keys()].map(num => (
-                    <option key={num} value={num} className="bg-slate-800">{num}</option>
+                    <option key={num} value={num} className="bg-neutral-100">{num}</option>
                   ))}
                 </select>
               </div>
@@ -94,19 +94,19 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
               <div>
                 <label className={labelClass}>Gender</label>
                 <select name="sex" value={formData.sex || ''} onChange={onInputChange} className={inputClass}>
-                  <option value="" className="bg-slate-800">Select</option>
-                  <option value="1" className="bg-slate-800">Male</option>
-                  <option value="0" className="bg-slate-800">Female</option>
+                  <option value="" className="bg-neutral-100">Select</option>
+                  <option value="1" className="bg-neutral-100">Male</option>
+                  <option value="0" className="bg-neutral-100">Female</option>
                 </select>
               </div>
               <div>
                 <label className={labelClass}>Chest Pain Type</label>
                 <select name="cp" value={formData.cp || ''} onChange={onInputChange} className={inputClass}>
-                  <option value="" className="bg-slate-800">Select Type</option>
-                  <option value="1" className="bg-slate-800">1: Standard Heart Pain</option>
-                  <option value="2" className="bg-slate-800">2: Unusual Heart Pain</option>
-                  <option value="3" className="bg-slate-800">3: Non-Heart Related Pain</option>
-                  <option value="4" className="bg-slate-800">4: No Pain (Asymptomatic)</option>
+                  <option value="" className="bg-neutral-100">Select Type</option>
+                  <option value="1" className="bg-neutral-100">1: Standard Heart Pain</option>
+                  <option value="2" className="bg-neutral-100">2: Unusual Heart Pain</option>
+                  <option value="3" className="bg-neutral-100">3: Non-Heart Related Pain</option>
+                  <option value="4" className="bg-neutral-100">4: No Pain (Asymptomatic)</option>
                 </select>
               </div>
               <div>
@@ -124,26 +124,26 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
               <div>
                 <label className={labelClass}>Fasting Blood Sugar &gt; 120</label>
                 <select name="fbs" value={formData.fbs || ''} onChange={onInputChange} className={inputClass}>
-                  <option value="" className="bg-slate-800">Select</option>
-                  <option value="1" className="bg-slate-800">Yes</option>
-                  <option value="0" className="bg-slate-800">No</option>
+                  <option value="" className="bg-neutral-100">Select</option>
+                  <option value="1" className="bg-neutral-100">Yes</option>
+                  <option value="0" className="bg-neutral-100">No</option>
                 </select>
               </div>
               <div>
                 <label className={labelClass}>Resting ECG</label>
                 <select name="restecg" value={formData.restecg || ''} onChange={onInputChange} className={inputClass}>
-                  <option value="" className="bg-slate-800">Select</option>
-                  <option value="0" className="bg-slate-800">0: Normal</option>
-                  <option value="1" className="bg-slate-800">1: ST-T Abnormality</option>
-                  <option value="2" className="bg-slate-800">2: LVH</option>
+                  <option value="" className="bg-neutral-100">Select</option>
+                  <option value="0" className="bg-neutral-100">0: Normal</option>
+                  <option value="1" className="bg-neutral-100">1: ST-T Abnormality</option>
+                  <option value="2" className="bg-neutral-100">2: LVH</option>
                 </select>
               </div>
               <div>
                 <label className={labelClass}>Exercise Angina</label>
                 <select name="exang" value={formData.exang || ''} onChange={onInputChange} className={inputClass}>
-                  <option value="" className="bg-slate-800">Select</option>
-                  <option value="1" className="bg-slate-800">Yes</option>
-                  <option value="0" className="bg-slate-800">No</option>
+                  <option value="" className="bg-neutral-100">Select</option>
+                  <option value="1" className="bg-neutral-100">Yes</option>
+                  <option value="0" className="bg-neutral-100">No</option>
                 </select>
               </div>
               <div>
@@ -163,9 +163,9 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
               <div>
                 <label className={labelClass}>Currently Smoking</label>
                 <select name="smoking" value={formData.smoking || ''} onChange={onInputChange} className={inputClass}>
-                  <option value="" className="bg-slate-800">Select</option>
-                  <option value="1" className="bg-slate-800">Yes</option>
-                  <option value="0" className="bg-slate-800">No</option>
+                  <option value="" className="bg-neutral-100">Select</option>
+                  <option value="1" className="bg-neutral-100">Yes</option>
+                  <option value="0" className="bg-neutral-100">No</option>
                 </select>
               </div>
               <div>
@@ -183,17 +183,17 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
               <div>
                 <label className={labelClass}>Has Diabetes?</label>
                 <select name="diabetes" value={formData.diabetes || ''} onChange={onInputChange} className={inputClass}>
-                  <option value="" className="bg-slate-800">Select</option>
-                  <option value="1" className="bg-slate-800">Yes</option>
-                  <option value="0" className="bg-slate-800">No</option>
+                  <option value="" className="bg-neutral-100">Select</option>
+                  <option value="1" className="bg-neutral-100">Yes</option>
+                  <option value="0" className="bg-neutral-100">No</option>
                 </select>
               </div>
               <div>
                 <label className={labelClass}>Gender</label>
                 <select name="gender" value={formData.gender || ''} onChange={onInputChange} className={inputClass}>
-                  <option value="" className="bg-slate-800">Select</option>
-                  <option value="1" className="bg-slate-800">Male</option>
-                  <option value="0" className="bg-slate-800">Female</option>
+                  <option value="" className="bg-neutral-100">Select</option>
+                  <option value="1" className="bg-neutral-100">Male</option>
+                  <option value="0" className="bg-neutral-100">Female</option>
                 </select>
               </div>
             </>
@@ -213,15 +213,15 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
               <div>
                 <label className={labelClass}>Albumin</label>
                 <select name="al" value={formData.al || ''} onChange={onInputChange} className={inputClass}>
-                  <option value="" className="bg-slate-800">Select</option>
-                  {[0, 1, 2, 3, 4, 5].map(num => <option key={num} value={num} className="bg-slate-800">{num}</option>)}
+                  <option value="" className="bg-neutral-100">Select</option>
+                  {[0, 1, 2, 3, 4, 5].map(num => <option key={num} value={num} className="bg-neutral-100">{num}</option>)}
                 </select>
               </div>
               <div>
                 <label className={labelClass}>Sugar</label>
                 <select name="su" value={formData.su || ''} onChange={onInputChange} className={inputClass}>
-                  <option value="" className="bg-slate-800">Select</option>
-                  {[0, 1, 2, 3, 4, 5].map(num => <option key={num} value={num} className="bg-slate-800">{num}</option>)}
+                  <option value="" className="bg-neutral-100">Select</option>
+                  {[0, 1, 2, 3, 4, 5].map(num => <option key={num} value={num} className="bg-neutral-100">{num}</option>)}
                 </select>
               </div>
               <div>
@@ -241,19 +241,79 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
                 <input type="number" min="0" step="0.1" name="hemo" value={formData.hemo || ''} onChange={onInputChange} className={inputClass} placeholder="gms" />
               </div>
               <div>
+                <label className={labelClass}>Packed Cell Volume</label>
+                <input type="number" min="0" name="pcv" value={formData.pcv || ''} onChange={onInputChange} className={inputClass} placeholder="%" />
+              </div>
+              <div>
+                <label className={labelClass}>Sodium</label>
+                <input type="number" min="0" step="0.1" name="sod" value={formData.sod || ''} onChange={onInputChange} className={inputClass} placeholder="mEq/L" />
+              </div>
+              <div>
+                <label className={labelClass}>Potassium</label>
+                <input type="number" min="0" step="0.1" name="pot" value={formData.pot || ''} onChange={onInputChange} className={inputClass} placeholder="mEq/L" />
+              </div>
+              <div>
+                <label className={labelClass}>RBC Count</label>
+                <input type="number" min="0" step="0.1" name="rbcc" value={formData.rbcc || ''} onChange={onInputChange} className={inputClass} placeholder="millions/cmm" />
+              </div>
+              <div>
+                <label className={labelClass}>WBC Count</label>
+                <input type="number" min="0" name="wbcc" value={formData.wbcc || ''} onChange={onInputChange} className={inputClass} placeholder="cells/cumm" />
+              </div>
+              <div>
+                <label className={labelClass}>Pus Cells</label>
+                <select name="pc" value={formData.pc || ''} onChange={onInputChange} className={inputClass}>
+                  <option value="" className="bg-neutral-100">Select</option>
+                  <option value="1" className="bg-neutral-100">Normal</option>
+                  <option value="0" className="bg-neutral-100">Abnormal</option>
+                </select>
+              </div>
+              <div>
                 <label className={labelClass}>Hypertension</label>
                 <select name="htn" value={formData.htn || ''} onChange={onInputChange} className={inputClass}>
-                  <option value="" className="bg-slate-800">Select</option>
-                  <option value="1" className="bg-slate-800">Yes</option>
-                  <option value="0" className="bg-slate-800">No</option>
+                  <option value="" className="bg-neutral-100">Select</option>
+                  <option value="1" className="bg-neutral-100">Yes</option>
+                  <option value="0" className="bg-neutral-100">No</option>
                 </select>
               </div>
               <div>
                 <label className={labelClass}>Diabetes Mellitus</label>
                 <select name="dm" value={formData.dm || ''} onChange={onInputChange} className={inputClass}>
-                  <option value="" className="bg-slate-800">Select</option>
-                  <option value="1" className="bg-slate-800">Yes</option>
-                  <option value="0" className="bg-slate-800">No</option>
+                  <option value="" className="bg-neutral-100">Select</option>
+                  <option value="1" className="bg-neutral-100">Yes</option>
+                  <option value="0" className="bg-neutral-100">No</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelClass}>Coronary Artery Disease</label>
+                <select name="cad" value={formData.cad || ''} onChange={onInputChange} className={inputClass}>
+                  <option value="" className="bg-neutral-100">Select</option>
+                  <option value="1" className="bg-neutral-100">Yes</option>
+                  <option value="0" className="bg-neutral-100">No</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelClass}>Appetite</label>
+                <select name="appet" value={formData.appet || ''} onChange={onInputChange} className={inputClass}>
+                  <option value="" className="bg-neutral-100">Select</option>
+                  <option value="1" className="bg-neutral-100">Good</option>
+                  <option value="0" className="bg-neutral-100">Poor</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelClass}>Pedal Edema</label>
+                <select name="pe" value={formData.pe || ''} onChange={onInputChange} className={inputClass}>
+                  <option value="" className="bg-neutral-100">Select</option>
+                  <option value="1" className="bg-neutral-100">Yes</option>
+                  <option value="0" className="bg-neutral-100">No</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelClass}>Anemia</label>
+                <select name="ane" value={formData.ane || ''} onChange={onInputChange} className={inputClass}>
+                  <option value="" className="bg-neutral-100">Select</option>
+                  <option value="1" className="bg-neutral-100">Yes</option>
+                  <option value="0" className="bg-neutral-100">No</option>
                 </select>
               </div>
             </>
@@ -263,7 +323,7 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
         <div className="pt-6">
           <button
             type="submit"
-            className="w-full flex justify-center items-center py-4 px-6 rounded-2xl shadow-xl shadow-blue-500/20 text-lg font-black text-white bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-400 hover:to-cyan-500 focus:outline-none focus:ring-4 focus:ring-blue-500/50 transition-all transform hover:-translate-y-1"
+            className="w-full flex justify-center items-center py-3 px-6 rounded-lg shadow-sm text-lg font-semibold text-white bg-neutral-900 hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-900/50 transition-colors"
           >
             Process Assessment
           </button>
