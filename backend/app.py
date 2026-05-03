@@ -255,7 +255,17 @@ def predict():
             'bgr': ['bgr'],
             'hemo': ['hemo'],
             'htn': ['htn'],
-            'dm': ['dm']
+            'dm': ['dm'],
+            'pcv': ['pcv'],
+            'sod': ['sod'],
+            'pot': ['pot'],
+            'rbcc': ['rbcc'],
+            'wbcc': ['wbcc'],
+            'pc': ['pc'],
+            'cad': ['cad'],
+            'appet': ['appet'],
+            'pe': ['pe'],
+            'ane': ['ane']
         }
         
         provided_model_features = set()
