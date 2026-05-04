@@ -9,7 +9,6 @@ import shap
 import jwt
 import datetime
 
-# Add the parent directory to sys path so we can import the external database folder
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(BASE_DIR)
 MODELS_DIR = os.path.join(BASE_DIR, 'models')
@@ -52,7 +51,7 @@ MODEL_DEFAULTS = {
     }
 }
 
-# Features that MUST be provided by the user (no defaults allowed)
+#Features that MUST be provided by the user
 REQUIRED_FEATURES = {
     'diabetes': ['age', 'glucose', 'pregnancies'],
     'heart': ['age', 'sex'],
@@ -83,7 +82,7 @@ def load_models():
         except Exception as e:
             print(f"Error loading {key} model: {e}")
 
-# final loading models on server
+#final loading models on server
 load_models()
 
 def safe_float(val, default):
@@ -338,14 +337,19 @@ def predict():
             
         breakdown = []
         try:
+            import numpy as np
             explainer = shap.Explainer(model)
             shap_values = explainer(input_df)
             
             if len(shap_values.values.shape) == 3:
-                vals = shap_values.values[0, :, 1]
+                # For multi-class models (Heart=5 classes, Lung=3 classes)
+                # Sum the SHAP values for all classes except the healthy class (index 0)
+                # to get the total impact on disease risk.
+                vals = np.sum(shap_values.values[0, :, 1:], axis=1)
             else:
                 vals = shap_values.values[0]
                 
+            age_cols = {'age', 'Age', 'AGE'}
             for i, col in enumerate(input_df.columns):
                 val = float(input_df[col].iloc[0])
                 contrib = float(vals[i])
@@ -360,7 +364,28 @@ def predict():
                         "is_provided": is_provided
                     })
             breakdown.sort(key=lambda x: abs(x["contribution"]), reverse=True)
-            breakdown = breakdown[:8] # Send top 8 impactful features
+            breakdown = breakdown[:8]
+
+            # Cap age contribution to max 10% of total absolute contribution
+            total_abs = sum(abs(b["contribution"]) for b in breakdown)
+            if total_abs > 0:
+                age_max_share = 0.05
+                for b in breakdown:
+                    if b["feature"] in age_cols:
+                        age_abs = abs(b["contribution"])
+                        age_share = age_abs / total_abs
+                        if age_share > age_max_share:
+                            # Scale down age contribution
+                            scale = (age_max_share * total_abs) / age_abs
+                            excess = age_abs - (age_max_share * total_abs)
+                            b["contribution"] = b["contribution"] * scale
+                            # Redistribute excess proportionally to non-age features
+                            others = [x for x in breakdown if x["feature"] not in age_cols]
+                            other_abs = sum(abs(x["contribution"]) for x in others)
+                            if other_abs > 0:
+                                for o in others:
+                                    sign = 1 if o["contribution"] >= 0 else -1
+                                    o["contribution"] += sign * excess * (abs(o["contribution"]) / other_abs)
         except Exception as e:
             print("SHAP Error:", e)
 
