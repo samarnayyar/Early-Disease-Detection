@@ -2,6 +2,44 @@ import React from 'react';
 import { AlertCircle, CheckCircle2, TrendingUp, TrendingDown, ArrowRight, ActivitySquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+const FEATURE_LABELS = {
+  'cp_2.0': 'Chest Pain (Type 2)',
+  'cp_3.0': 'Chest Pain (Type 3)',
+  'cp_4.0': 'Chest Pain (Type 4 – Asymptomatic)',
+  'restecg_1.0': 'Resting ECG (ST-T Abnormality)',
+  'restecg_2.0': 'Resting ECG (LVH)',
+  'slope_2.0': 'ST Slope (Flat)',
+  'slope_3.0': 'ST Slope (Downsloping)',
+  'thal_6.0': 'Thalassemia (Fixed Defect)',
+  'thal_7.0': 'Thalassemia (Reversible Defect)',
+  'age': 'Age', 'Age': 'Age', 'AGE': 'Age',
+  'thalach': 'Max Heart Rate', 'trestbps': 'Resting BP',
+  'chol': 'Cholesterol', 'fbs': 'Fasting Blood Sugar',
+  'exang': 'Exercise Angina', 'oldpeak': 'ST Depression',
+  'sex': 'Gender', 'ca': 'Major Vessels',
+  'Glucose': 'Glucose', 'BMI': 'BMI', 'BloodPressure': 'Blood Pressure',
+  'Insulin': 'Insulin', 'SkinThickness': 'Skin Thickness',
+  'DiabetesPedigreeFunction': 'Diabetes Pedigree', 'Pregnancies': 'Pregnancies',
+  'Glucose_BMI': 'Glucose × BMI', 'Age_BMI': 'Age × BMI', 'Preg_Age': 'Pregnancies × Age',
+  'AGE': 'Age', 'PackHistory': 'Smoking History', 'FEV1': 'FEV1',
+  'FVC': 'FVC', 'CAT': 'CAT Score', 'Diabetes': 'Has Diabetes', 'gender': 'Gender',
+  'bp': 'Blood Pressure', 'sg': 'Specific Gravity', 'al': 'Albumin', 'su': 'Sugar',
+  'bu': 'Blood Urea', 'sc': 'Serum Creatinine', 'bgr': 'Blood Glucose',
+  'hemo': 'Hemoglobin', 'pcv': 'Packed Cell Volume', 'sod': 'Sodium', 'pot': 'Potassium',
+  'rbcc': 'RBC Count', 'wbcc': 'WBC Count', 'htn': 'Hypertension', 'dm': 'Diabetes Mellitus',
+  'cad': 'Coronary Artery Disease', 'appet': 'Appetite', 'pe': 'Pedal Edema', 'ane': 'Anemia',
+};
+
+const featureLabel = (feature) =>
+  FEATURE_LABELS[feature] || feature.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2');
+
+const valueLabel = (feature, value) => {
+  if (/_\d+\.0$/.test(feature)) return value === 1.0 ? 'Present' : 'Absent';
+  if (['sex', 'gender'].includes(feature)) return value === 1.0 ? 'Male' : 'Female';
+  if (['exang', 'fbs', 'htn', 'dm', 'cad', 'pe', 'ane', 'Diabetes'].includes(feature)) return value === 1.0 ? 'Yes' : 'No';
+  return value.toFixed(1);
+};
+
 export default function ResultSummary({ result, onReset }) {
   const getRiskSummary = (status, score) => {
     if (status === 'Low Risk') {
@@ -18,8 +56,11 @@ export default function ResultSummary({ result, onReset }) {
   const getShapExplanation = (breakdown) => {
     if (!breakdown || breakdown.length === 0) return null;
     
+    const AGE_FEATURES = ['age', 'Age', 'AGE'];
+
     const sorted = [...breakdown].sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
-    const topFactors = sorted.slice(0, 4);
+    // Exclude age from text bullets — it's capped and not actionable
+    const topFactors = sorted.filter(item => !AGE_FEATURES.includes(item.feature)).slice(0, 4);
     
     const riskIncreasers = topFactors.filter(item => item.contribution > 0);
     const riskDecreasers = topFactors.filter(item => item.contribution < 0);
@@ -40,7 +81,7 @@ export default function ResultSummary({ result, onReset }) {
                 {riskIncreasers.map((item, idx) => (
                   <li key={idx} className="flex items-start text-sm text-neutral-700">
                     <span className="w-1.5 h-1.5 rounded-full bg-red-600 mt-2 mr-3 shrink-0"></span>
-                    <span>Your <strong>{item.feature.replace(/_/g, ' ')}</strong> (recorded as {item.value.toFixed(1)}) is significantly contributing to a higher risk probability.</span>
+                    <span>Your <strong>{featureLabel(item.feature)}</strong> ({valueLabel(item.feature, item.value)}) is a significant factor in your current risk assessment.</span>
                   </li>
                 ))}
               </ul>
@@ -56,7 +97,7 @@ export default function ResultSummary({ result, onReset }) {
                 {riskDecreasers.map((item, idx) => (
                   <li key={idx} className="flex items-start text-sm text-neutral-700">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 mt-2 mr-3 shrink-0"></span>
-                    <span>Your <strong>{item.feature.replace(/_/g, ' ')}</strong> (recorded as {item.value.toFixed(1)}) is within optimal ranges, helping to stabilize your health profile.</span>
+                    <span>Your <strong>{featureLabel(item.feature)}</strong> ({valueLabel(item.feature, item.value)}) is currently contributing to a lower relative risk in this assessment.</span>
                   </li>
                 ))}
               </ul>
@@ -151,9 +192,9 @@ export default function ResultSummary({ result, onReset }) {
                       <div key={idx} className="flex items-center justify-between p-4 rounded-md bg-neutral-200/50 border border-neutral-300/30">
                         <div className="flex flex-col min-w-0 flex-1 mr-4">
                           <span className="text-sm font-bold text-neutral-800 capitalize truncate">
-                            {item.feature.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2')}
+                            {featureLabel(item.feature)}
                           </span>
-                          <span className="text-xs font-medium text-neutral-500">Value: {item.value.toFixed(1)}</span>
+                          <span className="text-xs font-medium text-neutral-500">Value: {valueLabel(item.feature, item.value)}</span>
                         </div>
                         <div className={`flex items-center space-x-2 font-black shrink-0 ${isRiskFactor ? 'text-red-600' : 'text-emerald-600'}`}>
                           <span>{isRiskFactor ? '↑' : '↓'} {relativeImpact.toFixed(0)}% influence</span>

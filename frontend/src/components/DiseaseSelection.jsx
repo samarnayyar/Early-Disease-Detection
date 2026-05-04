@@ -8,7 +8,7 @@ export default function DiseaseSelection({ onSelect }) {
     <div className="space-y-12 animate-in fade-in zoom-in-95 duration-700 pb-10">
       
       {/* Welcome Hero Section */}
-      <div className="relative overflow-hidden rounded-lg bg-[#f4f0e6] border border-neutral-200 p-8 md:p-10 shadow-sm">
+      <div className="relative overflow-hidden rounded-lg bg-[#ede7de] border border-neutral-200 p-8 md:p-10 shadow-sm">
         
         <div className="relative z-10 space-y-6">
           <div className="max-w-2xl space-y-6">
@@ -22,20 +22,20 @@ export default function DiseaseSelection({ onSelect }) {
           </div>
           
           <div className="flex flex-wrap gap-2 md:gap-3 pt-2">
-            <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-neutral-700 bg-neutral-50 px-3 py-1.5 rounded-md border border-neutral-200">
-              <ActivitySquare className="w-4 h-4 text-neutral-700" />
+            <div className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-neutral-800 bg-neutral-200/50 px-3 py-1.5 rounded-md border border-neutral-300/50">
+              <ActivitySquare className="w-3.5 h-3.5 text-neutral-600" />
               <span>Decision Support</span>
             </div>
-            <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-neutral-700 bg-neutral-50 px-3 py-1.5 rounded-md border border-neutral-200">
-              <ShieldCheck className="w-4 h-4 text-neutral-700" />
+            <div className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-neutral-800 bg-neutral-200/50 px-3 py-1.5 rounded-md border border-neutral-300/50">
+              <ShieldCheck className="w-3.5 h-3.5 text-neutral-600" />
               <span>Evidence-Based</span>
             </div>
-            <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-neutral-700 bg-neutral-50 px-3 py-1.5 rounded-md border border-neutral-200">
-              <Database className="w-4 h-4 text-neutral-700" />
+            <div className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-neutral-800 bg-neutral-200/50 px-3 py-1.5 rounded-md border border-neutral-300/50">
+              <Database className="w-3.5 h-3.5 text-neutral-600" />
               <span>4 Modules</span>
             </div>
-            <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-neutral-700 bg-neutral-50 px-3 py-1.5 rounded-md border border-neutral-200">
-              <Zap className="w-4 h-4 text-neutral-700" />
+            <div className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-neutral-800 bg-neutral-200/50 px-3 py-1.5 rounded-md border border-neutral-300/50">
+              <Zap className="w-3.5 h-3.5 text-neutral-600" />
               <span>Instant Analysis</span>
             </div>
           </div>
@@ -43,7 +43,7 @@ export default function DiseaseSelection({ onSelect }) {
       </div>
 
       {/* Clinical Values Notice */}
-      <div className="relative rounded-lg bg-[#f4f0e6] border border-neutral-200 p-6 md:p-8 shadow-sm">
+      <div className="relative rounded-lg bg-[#ede7de] border border-neutral-200 p-6 md:p-8 shadow-sm">
         <div className="absolute top-0 left-0 w-1 h-full bg-neutral-400 rounded-l-lg"></div>
         <div className="pl-4 space-y-3">
           <h3 className="text-base font-bold text-neutral-900 uppercase tracking-wider">Before You Begin</h3>

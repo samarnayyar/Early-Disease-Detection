@@ -53,7 +53,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
         onClick={onClose}
       />
       
-      <div className="relative w-full max-w-md bg-[#f4f0e6] border border-neutral-200 rounded-md shadow-lg overflow-hidden animate-in fade-in zoom-in duration-300">
+      <div className="relative w-full max-w-md bg-[#ede7de] border border-neutral-200 rounded-md shadow-lg overflow-hidden animate-in fade-in zoom-in duration-300">
 
         <div className="p-8">
           <div className="flex items-center justify-between mb-8">
@@ -87,8 +87,8 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }) {
                     required
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full bg-[#f4f0e6] border border-neutral-300 text-neutral-900 pl-12 pr-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none"
-                    placeholder="John Doe"
+                    className="w-full bg-[#ede7de] border border-neutral-300 text-neutral-900 pl-12 pr-4 py-3 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all outline-none"
+                    placeholder="Your Name"
                   />
                 </div>
               </div>
