@@ -2,7 +2,7 @@
 
 Wellcore is a modern, AI-powered health screening platform designed to detect potential early-stage diseases including Diabetes, Heart Disease, Kidney Disease, and Lung Disease. Built for medical students and researchers, it provides transparent risk assessments using SHAP (SHapley Additive exPlanations) to explain the factors driving each prediction.
 
-![Wellcore Dashboard](https://raw.githubusercontent.com/samarnayyar/Early-Disease-Detection/main/frontend/public/medical-bg.png)
+![Wellcore Dashboard](https://raw.githubusercontent.com/samarnayyar/Early-Disease-Detection/main/frontend/public/dashboard.png)
 
 ## 🚀 Features
 
