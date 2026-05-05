@@ -60,7 +60,7 @@ export default function ResultSummary({ result, onReset }) {
 
     const sorted = [...breakdown].sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution));
     // Exclude age from text bullets — it's capped and not actionable
-    const topFactors = sorted.filter(item => !AGE_FEATURES.includes(item.feature)).slice(0, 4);
+    const topFactors = sorted.filter(item => !AGE_FEATURES.includes(item.feature)).slice(0, 6);
     
     const riskIncreasers = topFactors.filter(item => item.contribution > 0);
     const riskDecreasers = topFactors.filter(item => item.contribution < 0);
