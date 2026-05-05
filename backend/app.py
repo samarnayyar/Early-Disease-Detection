@@ -17,8 +17,10 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 from database.auth_routes import auth_bp
 from database.history_routes import history_bp
+from report_routes import report_bp
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(history_bp, url_prefix='/api')
+app.register_blueprint(report_bp, url_prefix='/api')
 
 from database.db import predictions_collection
 from database.auth_middleware import JWT_SECRET
@@ -309,6 +311,7 @@ def predict():
                 elif len(probs) == 5:
                     # For 5-class models (like Heart): 0=Healthy, 1,2,3,4=Heart Disease
                     # Sum all disease classes to get overall risk of any heart disease
+                    print(f"DEBUG: Heart Probs: {probs}")
                     risk_score = int(sum(probs[1:]) * 100)
                 else:
                     risk_score = int(probs[-1] * 100)
@@ -419,4 +422,4 @@ def predict():
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port, debug=True)

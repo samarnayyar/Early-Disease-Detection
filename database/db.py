@@ -9,10 +9,10 @@ load_dotenv()
 import certifi
 
 # Default fallback to a local MongoDB for safety if .env is missing
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/medpredict")
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/wellcore")
 
 client = MongoClient(MONGO_URI, tlsCAFile=certifi.where())
-db = client["medpredict"]
+db = client["wellcore"]
 
 # Collections
 users_collection = db["users"]

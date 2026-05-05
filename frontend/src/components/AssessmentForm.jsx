@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { DISEASES } from '../constants/diseases';
+import { Upload, FileText, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const INFO = {
   age: {
@@ -212,20 +214,102 @@ function InfoTooltip({ id, openTooltip, setOpenTooltip, side = 'left' }) {
   );
 }
 
-export default function AssessmentForm({ selectedDisease, formData, onInputChange, onSubmit }) {
+export default function AssessmentForm({ selectedDisease, formData, setFormData, onInputChange, onSubmit }) {
   const disease = DISEASES.find(d => d.id === selectedDisease);
   const Icon = disease?.icon;
   const [openTooltip, setOpenTooltip] = useState(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanStatus, setScanStatus] = useState(null); 
+  const [lastExtractedKeys, setLastExtractedKeys] = useState(new Set());
+  const fileInputRef = useRef(null);
+
+  // Reset scanner state when changing diseases
+  React.useEffect(() => {
+    setScanStatus(null);
+    setLastExtractedKeys(new Set());
+    setIsScanning(false);
+  }, [selectedDisease]);
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setIsScanning(true);
+    setScanStatus('scanning');
+    setLastExtractedKeys(new Set());
+
+    const formDataToUpload = new FormData();
+    formDataToUpload.append('file', file);
+
+    try {
+      const response = await fetch('http://localhost:5000/api/extract-report', {
+        method: 'POST',
+        body: formDataToUpload,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Merge extracted data with current form data
+        setFormData(prev => ({
+          ...prev,
+          ...data.extractedData
+        }));
+        setLastExtractedKeys(new Set(Object.keys(data.extractedData)));
+        setScanStatus('success');
+        setTimeout(() => setScanStatus(null), 6000);
+      } else {
+        throw new Error(data.error || 'Failed to analyze report');
+      }
+    } catch (error) {
+      console.error("Scanning Error:", error);
+      setScanStatus('error');
+      alert(error.message || "Could not analyze the report. Please make sure the backend dependencies are installed.");
+    } finally {
+      setIsScanning(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const ic = "w-full px-4 py-3 text-base rounded-lg bg-[#ede7de] border border-neutral-300 text-neutral-900 focus:ring-2 focus:ring-neutral-900/20 focus:border-neutral-900 outline-none transition-all placeholder:text-neutral-500";
   const lc = "block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-2";
 
-  const L = ({ id, children, req, side = 'left' }) => (
-    <label className={lc}>
-      {children}{req && <span className="text-red-400 ml-1">*</span>}
-      <InfoTooltip id={id} openTooltip={openTooltip} setOpenTooltip={setOpenTooltip} side={side} />
-    </label>
-  );
+  const L = ({ id, children, req, side = 'left' }) => {
+    const wasScanned = lastExtractedKeys.has(id) && formData[id] !== undefined && formData[id] !== null && formData[id] !== '';
+    const needsManual = scanStatus === 'success' && !wasScanned;
+    
+    return (
+      <label className={`${lc} flex items-center justify-between`}>
+        <span className="flex items-center">
+          {children}{req && <span className="text-red-500 ml-1 font-bold">*</span>}
+          <InfoTooltip id={id} openTooltip={openTooltip} setOpenTooltip={setOpenTooltip} side={side} />
+        </span>
+        <AnimatePresence>
+          {needsManual && (
+            <motion.span 
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="text-[10px] font-bold text-neutral-500 bg-[#ede7de] px-2 py-0.5 rounded border border-neutral-300 shadow-sm"
+            >
+              Enter manually
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </label>
+    );
+  };
+
+  const getInClass = (id, req) => {
+    const wasScanned = lastExtractedKeys.has(id) && formData[id] !== undefined && formData[id] !== null && formData[id] !== '';
+    const needsManual = scanStatus === 'success' && !wasScanned;
+    
+    return `${ic} ${
+      wasScanned ? 'border-emerald-500 ring-4 ring-emerald-500/20 bg-emerald-50/20 shadow-[0_0_15px_rgba(16,185,129,0.2)]' : 
+      needsManual ? 'border-rose-400 ring-4 ring-rose-400/20 shadow-[0_0_15px_rgba(244,63,94,0.15)]' : 
+      'border-neutral-300'
+    } transition-all duration-500`;
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700" onClick={() => setOpenTooltip(null)}>
@@ -253,44 +337,128 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
         </div>
       </div>
 
+      {/* ── Smart Report Scanner ── */}
+      <div className="bg-neutral-100 border border-neutral-300 rounded-xl p-6 transition-all shadow-sm group relative overflow-hidden">
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          onChange={handleFileUpload} 
+          accept="image/*,application/pdf" 
+          className="hidden" 
+        />
+        
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex-1">
+            <div className="flex items-center space-x-4 mb-4">
+              <div className={`p-3 rounded-lg ${
+                scanStatus === 'success' ? 'bg-[#e3eadf] text-[#3e4f3a]' : 
+                'bg-neutral-200 text-neutral-700'
+              } transition-colors shadow-sm`}>
+                {scanStatus === 'scanning' ? <Loader2 className="w-6 h-6 animate-spin" /> : 
+                 scanStatus === 'success' ? <CheckCircle2 className="w-6 h-6" /> : 
+                 <FileText className="w-6 h-6" />}
+</div>
+              <div>
+                <h3 className="text-base font-bold text-neutral-900">Smart Report Scanner</h3>
+                <p className="text-xs font-medium text-neutral-600 mt-0.5">Upload a PDF or Photo to auto-fill clinical values</p>
+              </div>
+            </div>
+
+            {/* Recommended Tests Guide */}
+            <div className="bg-white/50 rounded-lg p-3 border border-neutral-200/60">
+              <p className="text-[10px] font-black text-neutral-500 uppercase tracking-widest mb-2 flex items-center">
+                <span className="w-1 h-1 bg-neutral-400 rounded-full mr-2"></span>
+                Required {disease?.name} Reports (Any one will work)
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {(disease?.id === 'diabetes' ? ['Fasting Sugar (FBS)', 'HbA1c Test', 'RBS', 'Oral Glucose (OGTT)'] :
+                  disease?.id === 'heart' ? ['Lipid Profile', 'ECG Report', 'Blood Pressure', 'Echo / TMT'] :
+                  disease?.id === 'lung' ? ['Spirometry / PFT', 'Chest X-ray', 'ABG Test', 'Chest CT Scan'] :
+                  disease?.id === 'kidney' ? ['Serum Creatinine', 'BUN / GFR', 'Urinalysis', 'Renal Ultrasound'] : []
+                ).map((test, i) => (
+                  <span key={i} className="text-[11px] font-bold px-2 py-1 bg-white border border-neutral-200 rounded text-neutral-700 shadow-sm">
+                    {test}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          <div className="shrink-0">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isScanning}
+              className={`flex items-center space-x-2 px-6 py-3 rounded-lg text-sm font-black transition-all shadow-md ${
+                isScanning ? 'bg-neutral-200 text-neutral-500 cursor-not-allowed' : 
+                scanStatus === 'success' ? 'bg-[#3e4f3a] text-white' : 
+                'bg-neutral-900 text-white hover:bg-neutral-800'
+              }`}
+            >
+              {isScanning ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Analyzing...</span>
+                </>
+              ) : scanStatus === 'success' ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Report Scanned</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4" />
+                  <span>Upload Report</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Status indicator bar for scanning */}
+        {isScanning && (
+          <div className="absolute bottom-0 left-0 h-1 bg-neutral-900 animate-[shimmer_2s_infinite]" style={{ width: '100%', backgroundSize: '200% 100%' }}></div>
+        )}
+      </div>
+
       <form onSubmit={onSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
           {/* Age — all diseases */}
           <div>
             <L id="age" req side="left">Patient Age</L>
-            <input required type="number" min="0" name="age" value={formData.age || ''} onChange={onInputChange} className={ic} placeholder="e.g. 45" />
+            <input required type="number" min="0" name="age" value={formData.age || ''} onChange={onInputChange} className={getInClass('age', true)} placeholder="e.g. 45" />
           </div>
 
           {/* ── DIABETES ── */}
           {selectedDisease === 'diabetes' && (<>
             <div>
               <L id="glucose" req side="right">Glucose Level</L>
-              <input required type="number" min="0" name="glucose" value={formData.glucose || ''} onChange={onInputChange} className={ic} placeholder="mg/dL" />
+              <input required type="number" min="0" step="any" name="glucose" value={formData.glucose || ''} onChange={onInputChange} className={getInClass('glucose', true)} placeholder="mg/dL" />
             </div>
             <div>
               <L id="bmi" side="left">BMI</L>
-              <input type="number" min="0" step="0.1" name="bmi" value={formData.bmi || ''} onChange={onInputChange} className={ic} placeholder="Body Mass Index" />
+              <input type="number" min="0" step="0.1" name="bmi" value={formData.bmi || ''} onChange={onInputChange} className={getInClass('bmi')} placeholder="Body Mass Index" />
             </div>
             <div>
               <L id="bp" side="right">Blood Pressure</L>
-              <input type="number" min="0" name="bp" value={formData.bp || ''} onChange={onInputChange} className={ic} placeholder="mmHg" />
+              <input type="number" min="0" step="any" name="bp" value={formData.bp || ''} onChange={onInputChange} className={getInClass('bp')} placeholder="mmHg" />
             </div>
             <div>
               <L id="insulin" side="left">Insulin</L>
-              <input type="number" min="0" name="insulin" value={formData.insulin || ''} onChange={onInputChange} className={ic} placeholder="U/ml" />
+              <input type="number" min="0" step="any" name="insulin" value={formData.insulin || ''} onChange={onInputChange} className={getInClass('insulin')} placeholder="U/ml" />
             </div>
             <div>
               <L id="skinthickness" side="right">Skin Thickness</L>
-              <input type="number" min="0" name="skinthickness" value={formData.skinthickness || ''} onChange={onInputChange} className={ic} placeholder="mm" />
+              <input type="number" min="0" step="any" name="skinthickness" value={formData.skinthickness || ''} onChange={onInputChange} className={getInClass('skinthickness')} placeholder="mm" />
             </div>
             <div>
               <L id="dpf" side="left">Diabetes Pedigree Func</L>
-              <input type="number" min="0" step="0.01" name="dpf" value={formData.dpf || ''} onChange={onInputChange} className={ic} placeholder="e.g. 0.5" />
+              <input type="number" min="0" step="0.01" name="dpf" value={formData.dpf || ''} onChange={onInputChange} className={getInClass('dpf')} placeholder="e.g. 0.5" />
             </div>
             <div>
               <L id="pregnancies" req side="right">Pregnancies</L>
-              <select required name="pregnancies" value={formData.pregnancies || ''} onChange={onInputChange} className={ic}>
+              <select required name="pregnancies" value={formData.pregnancies || ''} onChange={onInputChange} className={getInClass('pregnancies', true)}>
                 <option value="" className="bg-neutral-100">Select Count</option>
                 <option value="0" className="bg-neutral-100">0 (Male / Never Pregnant)</option>
                 <option value="1" className="bg-neutral-100">1</option>
@@ -306,7 +474,7 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
           {selectedDisease === 'heart' && (<>
             <div>
               <L id="sex" req side="right">Gender</L>
-              <select required name="sex" value={formData.sex || ''} onChange={onInputChange} className={ic}>
+              <select required name="sex" value={formData.sex || ''} onChange={onInputChange} className={getInClass('sex', true)}>
                 <option value="" className="bg-neutral-100">Select</option>
                 <option value="1" className="bg-neutral-100">Male</option>
                 <option value="0" className="bg-neutral-100">Female</option>
@@ -314,7 +482,7 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
             </div>
             <div>
               <L id="cp" side="left">Chest Pain Type</L>
-              <select name="cp" value={formData.cp || ''} onChange={onInputChange} className={ic}>
+              <select name="cp" value={formData.cp || ''} onChange={onInputChange} className={getInClass('cp')}>
                 <option value="" className="bg-neutral-100">Select Type</option>
                 <option value="1" className="bg-neutral-100">1: Standard Heart Pain</option>
                 <option value="2" className="bg-neutral-100">2: Unusual Heart Pain</option>
@@ -324,19 +492,19 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
             </div>
             <div>
               <L id="chol" side="right">Cholesterol</L>
-              <input type="number" min="0" name="chol" value={formData.chol || ''} onChange={onInputChange} className={ic} placeholder="mg/dl" />
+              <input type="number" min="0" step="any" name="chol" value={formData.chol || ''} onChange={onInputChange} className={getInClass('chol')} placeholder="mg/dl" />
             </div>
             <div>
               <L id="thalach" side="left">Max Heart Rate (thalach)</L>
-              <input type="number" min="0" name="thalach" value={formData.thalach || ''} onChange={onInputChange} className={ic} placeholder="BPM" />
+              <input type="number" min="0" step="any" name="thalach" value={formData.thalach || ''} onChange={onInputChange} className={getInClass('thalach')} placeholder="BPM" />
             </div>
             <div>
               <L id="trestbps" side="right">Resting BP (trestbps)</L>
-              <input type="number" min="0" name="trestbps" value={formData.trestbps || ''} onChange={onInputChange} className={ic} placeholder="mmHg" />
+              <input type="number" min="0" step="any" name="trestbps" value={formData.trestbps || ''} onChange={onInputChange} className={getInClass('trestbps')} placeholder="mmHg" />
             </div>
             <div>
               <L id="fbs" side="left">Fasting Blood Sugar &gt; 120</L>
-              <select name="fbs" value={formData.fbs || ''} onChange={onInputChange} className={ic}>
+              <select name="fbs" value={formData.fbs || ''} onChange={onInputChange} className={getInClass('fbs')}>
                 <option value="" className="bg-neutral-100">Select</option>
                 <option value="1" className="bg-neutral-100">Yes</option>
                 <option value="0" className="bg-neutral-100">No</option>
@@ -344,7 +512,7 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
             </div>
             <div>
               <L id="restecg" side="right">Resting ECG</L>
-              <select name="restecg" value={formData.restecg || ''} onChange={onInputChange} className={ic}>
+              <select name="restecg" value={formData.restecg || ''} onChange={onInputChange} className={getInClass('restecg')}>
                 <option value="" className="bg-neutral-100">Select</option>
                 <option value="0" className="bg-neutral-100">0: Normal</option>
                 <option value="1" className="bg-neutral-100">1: ST-T Abnormality</option>
@@ -353,7 +521,7 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
             </div>
             <div>
               <L id="exang" side="left">Exercise Angina</L>
-              <select name="exang" value={formData.exang || ''} onChange={onInputChange} className={ic}>
+              <select name="exang" value={formData.exang || ''} onChange={onInputChange} className={getInClass('exang')}>
                 <option value="" className="bg-neutral-100">Select</option>
                 <option value="1" className="bg-neutral-100">Yes</option>
                 <option value="0" className="bg-neutral-100">No</option>
@@ -361,7 +529,7 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
             </div>
             <div>
               <L id="oldpeak" side="right">ST Depression (oldpeak)</L>
-              <input type="number" min="0" step="0.1" name="oldpeak" value={formData.oldpeak || ''} onChange={onInputChange} className={ic} placeholder="e.g. 1.5" />
+              <input type="number" min="0" step="0.1" name="oldpeak" value={formData.oldpeak || ''} onChange={onInputChange} className={getInClass('oldpeak')} placeholder="e.g. 1.5" />
             </div>
           </>)}
 
@@ -369,11 +537,11 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
           {selectedDisease === 'lung' && (<>
             <div>
               <L id="smoking_history" req side="right">Smoking History (Pack-years)</L>
-              <input required type="number" min="0" name="smoking_history" value={formData.smoking_history || ''} onChange={onInputChange} className={ic} placeholder="0 for non-smoker" />
+              <input required type="number" min="0" name="smoking_history" value={formData.smoking_history || ''} onChange={onInputChange} className={getInClass('smoking_history', true)} placeholder="0 for non-smoker" />
             </div>
             <div>
               <L id="smoking" side="left">Currently Smoking</L>
-              <select name="smoking" value={formData.smoking || ''} onChange={onInputChange} className={ic}>
+              <select name="smoking" value={formData.smoking || ''} onChange={onInputChange} className={getInClass('smoking')}>
                 <option value="" className="bg-neutral-100">Select</option>
                 <option value="1" className="bg-neutral-100">Yes</option>
                 <option value="0" className="bg-neutral-100">No</option>
@@ -381,19 +549,19 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
             </div>
             <div>
               <L id="fev1" side="right">FEV1 (Airflow in 1 sec)</L>
-              <input type="number" min="0" step="0.01" name="fev1" value={formData.fev1 || ''} onChange={onInputChange} className={ic} placeholder="Liters" />
+              <input type="number" min="0" step="0.01" name="fev1" value={formData.fev1 || ''} onChange={onInputChange} className={getInClass('fev1')} placeholder="Liters" />
             </div>
             <div>
               <L id="fvc" side="left">FVC (Total Lung Capacity)</L>
-              <input type="number" min="0" step="0.01" name="fvc" value={formData.fvc || ''} onChange={onInputChange} className={ic} placeholder="Liters" />
+              <input type="number" min="0" step="0.01" name="fvc" value={formData.fvc || ''} onChange={onInputChange} className={getInClass('fvc')} placeholder="Liters" />
             </div>
             <div>
               <L id="cat_score" side="right">CAT Score (Symptoms Impact)</L>
-              <input type="number" min="0" name="cat_score" value={formData.cat_score || ''} onChange={onInputChange} className={ic} placeholder="Range: 0-40" />
+              <input type="number" min="0" name="cat_score" value={formData.cat_score || ''} onChange={onInputChange} className={getInClass('cat_score')} placeholder="Range: 0-40" />
             </div>
             <div>
               <L id="diabetes_lung" side="left">Has Diabetes?</L>
-              <select name="diabetes" value={formData.diabetes || ''} onChange={onInputChange} className={ic}>
+              <select name="diabetes" value={formData.diabetes || ''} onChange={onInputChange} className={getInClass('diabetes')}>
                 <option value="" className="bg-neutral-100">Select</option>
                 <option value="1" className="bg-neutral-100">Yes</option>
                 <option value="0" className="bg-neutral-100">No</option>
@@ -401,7 +569,7 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
             </div>
             <div>
               <L id="gender_lung" req side="right">Gender</L>
-              <select required name="gender" value={formData.gender || ''} onChange={onInputChange} className={ic}>
+              <select required name="gender" value={formData.gender || ''} onChange={onInputChange} className={getInClass('gender', true)}>
                 <option value="" className="bg-neutral-100">Select</option>
                 <option value="1" className="bg-neutral-100">Male</option>
                 <option value="0" className="bg-neutral-100">Female</option>
@@ -412,66 +580,66 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
           {/* ── KIDNEY ── */}
           {selectedDisease === 'kidney' && (<>
             <div>
-              <L id="bp_kidney" req side="right">Blood Pressure</L>
-              <input required type="number" min="0" name="bp" value={formData.bp || ''} onChange={onInputChange} className={ic} placeholder="mmHg" />
+              <L id="bp" req side="right">Blood Pressure</L>
+              <input required type="number" min="0" step="any" name="bp" value={formData.bp || ''} onChange={onInputChange} className={getInClass('bp', true)} placeholder="mmHg" />
             </div>
             <div>
               <L id="sg" side="left">Specific Gravity</L>
-              <input type="number" min="1.000" step="0.001" name="sg" value={formData.sg || ''} onChange={onInputChange} className={ic} placeholder="1.005 - 1.025" />
+              <input type="number" min="1.000" step="0.001" name="sg" value={formData.sg || ''} onChange={onInputChange} className={getInClass('sg')} placeholder="1.005 - 1.025" />
             </div>
             <div>
               <L id="al" side="right">Albumin</L>
-              <select name="al" value={formData.al || ''} onChange={onInputChange} className={ic}>
+              <select name="al" value={formData.al || ''} onChange={onInputChange} className={getInClass('al')}>
                 <option value="" className="bg-neutral-100">Select</option>
                 {[0, 1, 2, 3, 4, 5].map(n => <option key={n} value={n} className="bg-neutral-100">{n}</option>)}
               </select>
             </div>
             <div>
               <L id="su" side="left">Sugar</L>
-              <select name="su" value={formData.su || ''} onChange={onInputChange} className={ic}>
+              <select name="su" value={formData.su || ''} onChange={onInputChange} className={getInClass('su')}>
                 <option value="" className="bg-neutral-100">Select</option>
                 {[0, 1, 2, 3, 4, 5].map(n => <option key={n} value={n} className="bg-neutral-100">{n}</option>)}
               </select>
             </div>
             <div>
               <L id="bu" side="right">Blood Urea</L>
-              <input type="number" min="0" name="bu" value={formData.bu || ''} onChange={onInputChange} className={ic} placeholder="mgs/dl" />
+              <input type="number" min="0" step="any" name="bu" value={formData.bu || ''} onChange={onInputChange} className={getInClass('bu')} placeholder="mgs/dl" />
             </div>
             <div>
               <L id="sc" side="left">Serum Creatinine</L>
-              <input type="number" min="0" step="0.1" name="sc" value={formData.sc || ''} onChange={onInputChange} className={ic} placeholder="mgs/dl" />
+              <input type="number" min="0" step="any" name="sc" value={formData.sc || ''} onChange={onInputChange} className={getInClass('sc')} placeholder="mgs/dl" />
             </div>
             <div>
               <L id="bgr" side="right">Blood Glucose Random</L>
-              <input type="number" min="0" name="bgr" value={formData.bgr || ''} onChange={onInputChange} className={ic} placeholder="mgs/dl" />
+              <input type="number" min="0" step="any" name="bgr" value={formData.bgr || ''} onChange={onInputChange} className={getInClass('bgr')} placeholder="mgs/dl" />
             </div>
             <div>
               <L id="hemo" side="left">Hemoglobin</L>
-              <input type="number" min="0" step="0.1" name="hemo" value={formData.hemo || ''} onChange={onInputChange} className={ic} placeholder="gms" />
+              <input type="number" min="0" step="any" name="hemo" value={formData.hemo || ''} onChange={onInputChange} className={getInClass('hemo')} placeholder="gms" />
             </div>
             <div>
               <L id="pcv" side="right">Packed Cell Volume</L>
-              <input type="number" min="0" name="pcv" value={formData.pcv || ''} onChange={onInputChange} className={ic} placeholder="%" />
+              <input type="number" min="0" step="any" name="pcv" value={formData.pcv || ''} onChange={onInputChange} className={getInClass('pcv')} placeholder="%" />
             </div>
             <div>
               <L id="sod" side="left">Sodium</L>
-              <input type="number" min="0" step="0.1" name="sod" value={formData.sod || ''} onChange={onInputChange} className={ic} placeholder="mEq/L" />
+              <input type="number" min="0" step="0.1" name="sod" value={formData.sod || ''} onChange={onInputChange} className={getInClass('sod')} placeholder="mEq/L" />
             </div>
             <div>
               <L id="pot" side="right">Potassium</L>
-              <input type="number" min="0" step="0.1" name="pot" value={formData.pot || ''} onChange={onInputChange} className={ic} placeholder="mEq/L" />
+              <input type="number" min="0" step="0.1" name="pot" value={formData.pot || ''} onChange={onInputChange} className={getInClass('pot')} placeholder="mEq/L" />
             </div>
             <div>
               <L id="rbcc" side="left">RBC Count</L>
-              <input type="number" min="0" step="0.1" name="rbcc" value={formData.rbcc || ''} onChange={onInputChange} className={ic} placeholder="millions/cmm" />
+              <input type="number" min="0" step="0.1" name="rbcc" value={formData.rbcc || ''} onChange={onInputChange} className={getInClass('rbcc')} placeholder="millions/cmm" />
             </div>
             <div>
               <L id="wbcc" side="right">WBC Count</L>
-              <input type="number" min="0" name="wbcc" value={formData.wbcc || ''} onChange={onInputChange} className={ic} placeholder="cells/cumm" />
+              <input type="number" min="0" step="any" name="wbcc" value={formData.wbcc || ''} onChange={onInputChange} className={getInClass('wbcc')} placeholder="cells/cumm" />
             </div>
             <div>
               <L id="pc" side="left">Pus Cells</L>
-              <select name="pc" value={formData.pc || ''} onChange={onInputChange} className={ic}>
+              <select name="pc" value={formData.pc || ''} onChange={onInputChange} className={getInClass('pc')}>
                 <option value="" className="bg-neutral-100">Select</option>
                 <option value="1" className="bg-neutral-100">Normal</option>
                 <option value="0" className="bg-neutral-100">Abnormal</option>
@@ -479,7 +647,7 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
             </div>
             <div>
               <L id="htn" side="right">Hypertension</L>
-              <select name="htn" value={formData.htn || ''} onChange={onInputChange} className={ic}>
+              <select name="htn" value={formData.htn || ''} onChange={onInputChange} className={getInClass('htn')}>
                 <option value="" className="bg-neutral-100">Select</option>
                 <option value="1" className="bg-neutral-100">Yes</option>
                 <option value="0" className="bg-neutral-100">No</option>
@@ -487,7 +655,7 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
             </div>
             <div>
               <L id="dm" side="left">Diabetes Mellitus</L>
-              <select name="dm" value={formData.dm || ''} onChange={onInputChange} className={ic}>
+              <select name="dm" value={formData.dm || ''} onChange={onInputChange} className={getInClass('dm')}>
                 <option value="" className="bg-neutral-100">Select</option>
                 <option value="1" className="bg-neutral-100">Yes</option>
                 <option value="0" className="bg-neutral-100">No</option>
@@ -495,7 +663,7 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
             </div>
             <div>
               <L id="cad" side="right">Coronary Artery Disease</L>
-              <select name="cad" value={formData.cad || ''} onChange={onInputChange} className={ic}>
+              <select name="cad" value={formData.cad || ''} onChange={onInputChange} className={getInClass('cad')}>
                 <option value="" className="bg-neutral-100">Select</option>
                 <option value="1" className="bg-neutral-100">Yes</option>
                 <option value="0" className="bg-neutral-100">No</option>
@@ -503,7 +671,7 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
             </div>
             <div>
               <L id="appet" side="left">Appetite</L>
-              <select name="appet" value={formData.appet || ''} onChange={onInputChange} className={ic}>
+              <select name="appet" value={formData.appet || ''} onChange={onInputChange} className={getInClass('appet')}>
                 <option value="" className="bg-neutral-100">Select</option>
                 <option value="1" className="bg-neutral-100">Good</option>
                 <option value="0" className="bg-neutral-100">Poor</option>
@@ -511,7 +679,7 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
             </div>
             <div>
               <L id="pe" side="right">Pedal Edema</L>
-              <select name="pe" value={formData.pe || ''} onChange={onInputChange} className={ic}>
+              <select name="pe" value={formData.pe || ''} onChange={onInputChange} className={getInClass('pe')}>
                 <option value="" className="bg-neutral-100">Select</option>
                 <option value="1" className="bg-neutral-100">Yes</option>
                 <option value="0" className="bg-neutral-100">No</option>
@@ -519,7 +687,7 @@ export default function AssessmentForm({ selectedDisease, formData, onInputChang
             </div>
             <div>
               <L id="ane" side="left">Anemia</L>
-              <select name="ane" value={formData.ane || ''} onChange={onInputChange} className={ic}>
+              <select name="ane" value={formData.ane || ''} onChange={onInputChange} className={getInClass('ane')}>
                 <option value="" className="bg-neutral-100">Select</option>
                 <option value="1" className="bg-neutral-100">Yes</option>
                 <option value="0" className="bg-neutral-100">No</option>

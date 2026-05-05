@@ -41,7 +41,7 @@ export default function App() {
     setFormData({});
     setStep('form');
     setIsSidebarOpen(false);
-    
+
     // Ensure we scroll to top of the new form
     const container = document.getElementById('main-content-area');
     if (container) container.scrollTop = 0;
@@ -68,7 +68,7 @@ export default function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const hasAge = formData.age && formData.age.trim() !== '';
+    const hasAge = formData.age && String(formData.age).trim() !== '';
     const otherParams = Object.keys(formData).filter(key => key !== 'age' && formData[key] && formData[key].toString().trim() !== '');
 
     if (!hasAge) {
@@ -280,6 +280,7 @@ export default function App() {
                       <AssessmentForm
                         selectedDisease={selectedDisease}
                         formData={formData}
+                        setFormData={setFormData}
                         onInputChange={handleInputChange}
                         onSubmit={handleSubmit}
                       />
